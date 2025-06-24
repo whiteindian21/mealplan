@@ -1030,7 +1030,7 @@ USING (auth.uid()::text = user_id);</pre>
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
         
         // Initialize Supabase client
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // DOM Elements
         const calendarEl = document.getElementById('calendar');
