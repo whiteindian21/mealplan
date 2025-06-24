@@ -1519,13 +1519,14 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
-   <script>
+   
+    <script>
     // Supabase configuration
     const supabaseUrl = 'https://cnmapvrdamsugtdnuesh.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
     
     // Initialize Supabase client
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     
     // Mock data for demonstration (fallback)
     const mockInventory = [
@@ -2011,6 +2012,7 @@
                 document.getElementById('actionButtons').style.display = 'flex';
             } catch (error) {
                 console.error('Error generating meal plan:', error);
+                showToast(`Error: ${error.message}`, 'error');
                 
                 // Show mock data as fallback
                 if (planType === 'weekly') {
@@ -2019,12 +2021,10 @@
                     document.getElementById('weeklyPlan').style.display = 'grid';
                     document.getElementById('weeklySummary').style.display = 'grid';
                     document.getElementById('dailyMealCard').style.display = 'none';
-                    showToast('Using sample data. API call failed: ' + error.message, 'error');
                 } else {
                     displayDailyMeal(mockDailyMeal);
                     document.getElementById('weeklyPlan').style.display = 'none';
                     document.getElementById('weeklySummary').style.display = 'none';
-                    showToast('Using sample data. API call failed: ' + error.message, 'error');
                 }
                 
                 // Show action buttons
@@ -2057,7 +2057,7 @@
     // Generate meal plan using OpenAI API via Supabase Edge Function
     async function generateMealPlan(formData) {
         try {
-            // Call the Supabase Edge Function (corrected)
+            // Call the Supabase Edge Function
             const response = await fetch(`${supabaseUrl}/functions/v1/generate-meal-plan`, {
                 method: 'POST',
                 headers: {
@@ -2068,14 +2068,37 @@
             });
             
             if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
+                // Try to get detailed error message
+                let errorMessage = `API request failed with status ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (e) {
+                    // Couldn't parse JSON error
+                }
+                throw new Error(errorMessage);
             }
             
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             console.error('Error in generateMealPlan:', error);
-            throw error;
+            
+            // Enhanced error message
+            const enhancedError = new Error(`Failed to generate meal plan: ${error.message}`);
+            
+            // Return mock data based on plan type
+            if (formData.planType === 'weekly') {
+                return {
+                    plan: mockWeeklyPlan,
+                    summary: mockWeeklySummary
+                };
+            } else {
+                return mockDailyMeal;
+            }
         }
     }
     
