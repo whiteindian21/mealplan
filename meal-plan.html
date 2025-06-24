@@ -228,10 +228,10 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             gap: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         .plan-type-btn:hover {
@@ -1158,10 +1158,6 @@
             background: #f39c12;
         }
         
-        .toast i {
-            font-size: 20px;
-        }
-        
         /* Responsive */
         @media (max-width: 900px) {
             .nav-links {
@@ -1519,618 +1515,660 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
-   
-      <script>
-    // Supabase configuration
-    const supabaseUrl = 'https://cnmapvrdamsugtdnuesh.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
-    
-    // Initialize Supabase client
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    
-    // Mock data for demonstration (fallback)
-    const mockInventory = [
-        { name: "Chicken Breast", quantity: 500, unit: "g", expiry_date: "2023-06-30" },
-        { name: "Broccoli", quantity: 2, unit: "heads", expiry_date: "2023-07-02" },
-        { name: "Quinoa", quantity: 500, unit: "g", expiry_date: "2023-06-26" },
-        { name: "Tomatoes", quantity: 6, unit: "pieces", expiry_date: "2023-06-28" },
-        { name: "Olive Oil", quantity: 250, unit: "ml", expiry_date: null }
-    ];
-    
-    const mockDailyMeal = {
-        name: "Mediterranean Chicken Bowl",
-        type: "Dinner",
-        prepTime: "30 min",
-        calories: 520,
-        cost: "$5.25",
-        description: "A delicious bowl featuring grilled chicken, quinoa, fresh vegetables, olives, and feta cheese with a tangy lemon-herb dressing. This Mediterranean-inspired meal is both nutritious and satisfying, perfect for a healthy dinner option."
-    };
-    
-    const mockWeeklyPlan = {
-        "Monday": [
-            {
-                name: "Oatmeal with Berries",
-                type: "Breakfast",
-                prepTime: "10 min",
-                calories: 320,
-                description: "Creamy oatmeal topped with fresh berries and a drizzle of honey."
-            },
-            {
-                name: "Quinoa Salad",
-                type: "Lunch",
-                prepTime: "15 min",
-                calories: 450,
-                description: "Fresh quinoa salad with cucumbers, tomatoes, and lemon dressing."
-            },
-            {
-                name: "Mediterranean Chicken Bowl",
-                type: "Dinner",
-                prepTime: "30 min",
-                calories: 520,
-                description: "Grilled chicken with quinoa, vegetables, olives, and feta cheese."
-            }
-        ],
-        "Tuesday": [
-            {
-                name: "Avocado Toast",
-                type: "Breakfast",
-                prepTime: "10 min",
-                calories: 380,
-                description: "Whole grain toast topped with mashed avocado and cherry tomatoes."
-            },
-            {
-                name: "Chicken Wrap",
-                type: "Lunch",
-                prepTime: "15 min",
-                calories: 420,
-                description: "Grilled chicken wrap with veggies and hummus in a whole wheat tortilla."
-            },
-            {
-                name: "Vegetable Stir Fry",
-                type: "Dinner",
-                prepTime: "25 min",
-                calories: 480,
-                description: "Fresh vegetables stir-fried with tofu and soy-ginger sauce."
-            }
-        ],
-        "Wednesday": [
-            {
-                name: "Greek Yogurt Parfait",
-                type: "Breakfast",
-                prepTime: "5 min",
-                calories: 280,
-                description: "Greek yogurt layered with granola and fresh berries."
-            },
-            {
-                name: "Lentil Soup",
-                type: "Lunch",
-                prepTime: "10 min",
-                calories: 320,
-                description: "Hearty lentil soup with vegetables and herbs."
-            },
-            {
-                name: "Salmon with Asparagus",
-                type: "Dinner",
-                prepTime: "30 min",
-                calories: 550,
-                description: "Baked salmon with roasted asparagus and lemon butter sauce."
-            }
-        ]
-    };
-    
-    const mockWeeklySummary = {
-        totalCost: "73.50",
-        totalCalories: "10850",
-        totalPrepTime: "6h 45m",
-        uniqueIngredients: 42
-    };
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Global variables
+        let currentPlan = null; // To store the current generated plan
+        let currentUser = null; // To store the current user
+        
+        // Mock data for demonstration (fallback)
+        const mockInventory = [
+            { name: "Chicken Breast", quantity: 500, unit: "g", expiry_date: "2023-06-30" },
+            { name: "Broccoli", quantity: 2, unit: "heads", expiry_date: "2023-07-02" },
+            { name: "Quinoa", quantity: 500, unit: "g", expiry_date: "2023-06-26" },
+            { name: "Tomatoes", quantity: 6, unit: "pieces", expiry_date: "2023-06-28" },
+            { name: "Olive Oil", quantity: 250, unit: "ml", expiry_date: null }
+        ];
+        
+        const mockDailyMeal = {
+            name: "Mediterranean Chicken Bowl",
+            type: "Dinner",
+            prepTime: "30 min",
+            calories: 520,
+            cost: "$5.25",
+            description: "A delicious bowl featuring grilled chicken, quinoa, fresh vegetables, olives, and feta cheese with a tangy lemon-herb dressing. This Mediterranean-inspired meal is both nutritious and satisfying, perfect for a healthy dinner option."
+        };
+        
+        const mockWeeklyPlan = {
+            "Monday": [
+                {
+                    name: "Oatmeal with Berries",
+                    type: "Breakfast",
+                    prepTime: "10 min",
+                    calories: 320,
+                    description: "Creamy oatmeal topped with fresh berries and a drizzle of honey."
+                },
+                {
+                    name: "Quinoa Salad",
+                    type: "Lunch",
+                    prepTime: "15 min",
+                    calories: 450,
+                    description: "Fresh quinoa salad with cucumbers, tomatoes, and lemon dressing."
+                },
+                {
+                    name: "Mediterranean Chicken Bowl",
+                    type: "Dinner",
+                    prepTime: "30 min",
+                    calories: 520,
+                    description: "Grilled chicken with quinoa, vegetables, olives, and feta cheese."
+                }
+            ],
+            "Tuesday": [
+                {
+                    name: "Avocado Toast",
+                    type: "Breakfast",
+                    prepTime: "10 min",
+                    calories: 380,
+                    description: "Whole grain toast topped with mashed avocado and cherry tomatoes."
+                },
+                {
+                    name: "Chicken Wrap",
+                    type: "Lunch",
+                    prepTime: "15 min",
+                    calories: 420,
+                    description: "Grilled chicken wrap with veggies and hummus in a whole wheat tortilla."
+                },
+                {
+                    name: "Vegetable Stir Fry",
+                    type: "Dinner",
+                    prepTime: "25 min",
+                    calories: 480,
+                    description: "Fresh vegetables stir-fried with tofu and soy-ginger sauce."
+                }
+            ],
+            "Wednesday": [
+                {
+                    name: "Greek Yogurt Parfait",
+                    type: "Breakfast",
+                    prepTime: "5 min",
+                    calories: 280,
+                    description: "Greek yogurt layered with granola and fresh berries."
+                },
+                {
+                    name: "Lentil Soup",
+                    type: "Lunch",
+                    prepTime: "10 min",
+                    calories: 320,
+                    description: "Hearty lentil soup with vegetables and herbs."
+                },
+                {
+                    name: "Salmon with Asparagus",
+                    type: "Dinner",
+                    prepTime: "30 min",
+                    calories: 550,
+                    description: "Baked salmon with roasted asparagus and lemon butter sauce."
+                }
+            ]
+        };
+        
+        const mockWeeklySummary = {
+            totalCost: "73.50",
+            totalCalories: "10850",
+            totalPrepTime: "6h 45m",
+            uniqueIngredients: 42
+        };
 
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set up event listeners
-        setupEventListeners();
-        
-        // Initialize UI components
-        initDayCards();
-        setupModal();
-        
-        // Show the daily meal card with mock data
-        displayDailyMeal(mockDailyMeal);
-        
-        // Show the weekly plan with mock data
-        updateDayCards(mockWeeklyPlan);
-        updateWeeklySummary(mockWeeklySummary);
-        
-        // Show action buttons
-        document.getElementById('actionButtons').style.display = 'flex';
-    });
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check user session
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                document.getElementById('streakCount').textContent = '7';
+            } else {
+                // For demo purposes, we'll create a mock user
+                currentUser = {
+                    id: 'demo-user',
+                    email: 'demo@smartmeal.com'
+                };
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize UI components
+            initDayCards();
+            setupModal();
+            
+            // Show the daily meal card with mock data
+            displayDailyMeal(mockDailyMeal);
+            
+            // Show the weekly plan with mock data
+            updateDayCards(mockWeeklyPlan);
+            updateWeeklySummary(mockWeeklySummary);
+            
+            // Show action buttons
+            document.getElementById('actionButtons').style.display = 'flex';
+        });
 
-    // Initialize day cards for weekly view
-    function initDayCards() {
-        const weeklyPlan = document.getElementById('weeklyPlan');
-        weeklyPlan.innerHTML = '';
-        
-        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        
-        daysOfWeek.forEach((day, index) => {
-            const card = document.createElement('div');
-            card.className = 'day-card';
-            if (index === 0) card.classList.add('today');
-            
-            card.dataset.dayName = day;
-            
-            card.innerHTML = `
-                <div class="day-header">
-                    <div class="day-name">${day}</div>
-                    <div class="date">${getDateString(index)}</div>
-                </div>
-                <div class="meal-container">
-                    <div class="empty-state">No meals planned</div>
-                </div>
-            `;
-            
-            weeklyPlan.appendChild(card);
-        });
-    }
-    
-    // Helper function to get date string
-    function getDateString(dayOffset) {
-        const today = new Date();
-        const date = new Date(today);
-        date.setDate(today.getDate() + dayOffset);
-        
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    }
-    
-    // Update day cards with meal data
-    function updateDayCards(weeklyPlan) {
-        const dayCards = document.querySelectorAll('.day-card');
-        
-        dayCards.forEach(card => {
-            const dayName = card.dataset.dayName;
-            const mealContainer = card.querySelector('.meal-container');
-            mealContainer.innerHTML = '';
-            
-            if (weeklyPlan[dayName] && weeklyPlan[dayName].length > 0) {
-                card.dataset.meals = JSON.stringify(weeklyPlan[dayName]);
-                
-                weeklyPlan[dayName].forEach(meal => {
-                    const mealElement = document.createElement('div');
-                    mealElement.className = 'meal-item';
-                    
-                    mealElement.innerHTML = `<strong>${meal.type}:</strong> ${meal.name}`;
-                    mealContainer.appendChild(mealElement);
-                });
-            } else {
-                mealContainer.innerHTML = '<div class="empty-state">No meals planned</div>';
-                card.dataset.meals = '[]';
+        // Function to save meal plan to database
+        async function saveMealPlanToDatabase() {
+            if (!currentPlan) {
+                showToast('No meal plan to save', 'error');
+                return;
             }
-        });
-    }
-    
-    // Update weekly summary
-    function updateWeeklySummary(summaryData) {
-        document.getElementById('costValue').textContent = `$${summaryData.totalCost}`;
-        document.getElementById('caloriesValue').textContent = summaryData.totalCalories;
-        document.getElementById('prepTimeValue').textContent = summaryData.totalPrepTime;
-        document.getElementById('ingredientsValue').textContent = summaryData.uniqueIngredients;
-    }
-    
-    // Display daily meal
-    function displayDailyMeal(mealData) {
-        if (!mealData) return;
-        
-        document.getElementById('dailyMealName').textContent = mealData.name || 'Unnamed Meal';
-        document.getElementById('dailyMealType').textContent = mealData.type || 'Meal';
-        document.getElementById('dailyPrepTime').textContent = mealData.prepTime || 'N/A';
-        document.getElementById('dailyCalories').textContent = mealData.calories || 'N/A';
-        document.getElementById('dailyCost').textContent = mealData.cost || 'N/A';
-        document.getElementById('dailyMealDescription').textContent = mealData.description || 'No description available.';
-        
-        // Show the daily meal card
-        document.getElementById('dailyMealCard').style.display = 'block';
-    }
-    
-    // Set up the meal details modal
-    function setupModal() {
-        const modal = document.getElementById('mealModal');
-        const closeModal = document.querySelector('.close-modal');
-        
-        // Event delegation for day cards
-        document.getElementById('weeklyPlan').addEventListener('click', function(event) {
-            const card = event.target.closest('.day-card');
-            if (!card) return;
-            
-            const meals = JSON.parse(card.dataset.meals || '[]');
-            
-            document.getElementById('modalDayName').textContent = card.dataset.dayName;
-            document.getElementById('modalDate').textContent = getDateString(Array.from(card.parentNode.children).indexOf(card));
-            
-            const container = document.getElementById('modalMealsContainer');
-            container.innerHTML = '';
-            
-            if (meals.length > 0) {
-                meals.forEach(meal => {
-                    const mealDiv = document.createElement('div');
-                    mealDiv.className = 'modal-meal-item';
-                    
-                    mealDiv.innerHTML = `
-                        <div class="meal-header">
-                            <div class="meal-type">
-                                <i class="fas fa-utensils"></i> ${meal.type}: ${meal.name}
-                            </div>
-                            <button class="meal-toggle">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                        </div>
-                        <div class="meal-description">${meal.description}</div>
-                        <div class="meal-meta">
-                            <span class="prep-time"><i class="fas fa-clock"></i> Prep: ${meal.prepTime}</span>
-                            <span class="calories"><i class="fas fa-fire"></i> Calories: ${meal.calories}</span>
-                        </div>
-                        <div class="meal-details">
-                            <div class="details-section">
-                                <h5><i class="fas fa-carrot"></i> Ingredients</h5>
-                                <ul class="ingredients-list">
-                                    <li>Chicken breast <span class="inventory-status available">In stock</span></li>
-                                    <li>Quinoa <span class="inventory-status available">In stock</span></li>
-                                    <li>Cherry tomatoes <span class="inventory-status available">In stock</span></li>
-                                    <li>Cucumber <span class="inventory-status missing">Missing</span></li>
-                                    <li>Feta cheese <span class="inventory-status missing">Missing</span></li>
-                                    <li>Kalamata olives <span class="inventory-status available">In stock</span></li>
-                                    <li>Lemon <span class="inventory-status available">In stock</span></li>
-                                    <li>Olive oil <span class="inventory-status available">In stock</span></li>
-                                    <li>Fresh herbs <span class="inventory-status missing">Missing</span></li>
-                                </ul>
-                            </div>
-                            <div class="details-section">
-                                <h5><i class="fas fa-list-ol"></i> Preparation Steps</h5>
-                                <ol class="steps-list">
-                                    <li>Cook quinoa according to package instructions and let cool</li>
-                                    <li>Season chicken breast with salt, pepper, and herbs, then grill until cooked through</li>
-                                    <li>Chop vegetables and olives</li>
-                                    <li>Prepare dressing by whisking lemon juice, olive oil, and herbs</li>
-                                    <li>Assemble bowls with quinoa, sliced chicken, vegetables, and olives</li>
-                                    <li>Drizzle with dressing and top with crumbled feta cheese</li>
-                                </ol>
-                            </div>
-                            <div class="meal-actions">
-                                <button class="meal-action-btn primary add-to-grocery-btn">
-                                    <i class="fas fa-cart-plus"></i> Add Missing to Grocery
-                                </button>
-                                <button class="meal-action-btn secondary smart-swap-btn">
-                                    <i class="fas fa-sync-alt"></i> Smart Swap
-                                </button>
-                                <button class="meal-action-btn secondary">
-                                    <i class="fas fa-share-alt"></i> Share
-                                </button>
-                            </div>
-                            <div class="meal-rating">
-                                <span>Rate this meal:</span>
-                                <div class="stars">
-                                    <i class="fas fa-star rating-star" data-value="1"></i>
-                                    <i class="fas fa-star rating-star" data-value="2"></i>
-                                    <i class="fas fa-star rating-star" data-value="3"></i>
-                                    <i class="fas fa-star rating-star" data-value="4"></i>
-                                    <i class="fas fa-star rating-star" data-value="5"></i>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    container.appendChild(mealDiv);
-                });
-            } else {
-                container.innerHTML = '<div class="empty-state">No meals planned for this day</div>';
-            }
-            
-            // Set up toggle buttons
-            document.querySelectorAll('.meal-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const details = this.closest('.modal-meal-item').querySelector('.meal-details');
-                    const icon = this.querySelector('i');
-                    
-                    details.classList.toggle('expanded');
-                    
-                    if (details.classList.contains('expanded')) {
-                        icon.classList.remove('fa-chevron-down');
-                        icon.classList.add('fa-chevron-up');
-                    } else {
-                        icon.classList.remove('fa-chevron-up');
-                        icon.classList.add('fa-chevron-down');
-                    }
-                });
-            });
-            
-            // Set up rating stars
-            document.querySelectorAll('.rating-star').forEach(star => {
-                star.addEventListener('click', function() {
-                    const value = parseInt(this.dataset.value);
-                    const stars = this.parentElement.querySelectorAll('.rating-star');
-                    
-                    stars.forEach((s, i) => {
-                        if (i < value) {
-                            s.classList.add('active');
-                        } else {
-                            s.classList.remove('active');
-                        }
-                    });
-                    
-                    showToast(`Rated ${value} stars!`, 'success');
-                });
-                
-                // Add hover effect
-                star.addEventListener('mouseover', function() {
-                    const value = parseInt(this.dataset.value);
-                    const stars = this.parentElement.querySelectorAll('.rating-star');
-                    
-                    stars.forEach((s, i) => {
-                        if (i < value) {
-                            s.classList.add('hover');
-                        } else {
-                            s.classList.remove('hover');
-                        }
-                    });
-                });
-                
-                star.addEventListener('mouseout', function() {
-                    const stars = this.parentElement.querySelectorAll('.rating-star');
-                    stars.forEach(s => s.classList.remove('hover'));
-                });
-            });
-            
-            // Set up action buttons
-            document.querySelectorAll('.add-to-grocery-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    showToast('Missing ingredients added to grocery list!', 'success');
-                });
-            });
-            
-            document.querySelectorAll('.smart-swap-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    showToast('Finding alternative meals using your inventory...', 'success');
-                });
-            });
-            
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-        
-        closeModal.addEventListener('click', function() {
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        });
-        
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        });
-    }
-    
-    // Set up all event listeners
-    function setupEventListeners() {
-        // Hamburger menu toggle
-        document.getElementById('hamburgerMenu').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.querySelector('.nav-links').classList.toggle('active');
-            document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
-        });
-        
-        // Plan type toggle
-        document.querySelectorAll('.plan-type-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.plan-type-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                const planType = this.dataset.planType;
-                
-                // Show/hide appropriate sections
-                document.getElementById('weeklyPlan').style.display = planType === 'weekly' ? 'grid' : 'none';
-                document.getElementById('weeklySummary').style.display = planType === 'weekly' ? 'grid' : 'none';
-                document.getElementById('dailyMealCard').style.display = planType === 'daily' ? 'block' : 'none';
-                document.getElementById('moodSelectorContainer').style.display = planType === 'daily' ? 'block' : 'none';
-                
-                // Update submit button text
-                const submitBtn = document.getElementById('btn-submit-create');
-                submitBtn.innerHTML = planType === 'weekly' 
-                    ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
-                    : '<i class="fas fa-magic"></i> Generate Daily Meal';
-            });
-        });
-        
-        // Dietary restrictions toggle
-        document.getElementById('mpDietR').addEventListener('change', function() {
-            document.getElementById('dietaryDetails').style.display = 
-                this.checked ? 'block' : 'none';
-        });
-        
-        // Mood selector buttons
-        document.querySelectorAll('.mood-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        
-        // Inventory toggle
-        document.getElementById('useInventory').addEventListener('change', function() {
-            document.getElementById('inventoryItems').style.display = 
-                this.checked ? 'block' : 'none';
-        });
-        
-        // Form submission
-        document.getElementById('mealPlannerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('btn-submit-create');
-            const spinner = document.getElementById('loadingSpinner');
-            
-            submitBtn.disabled = true;
-            spinner.style.display = 'inline-block';
-            
+
             // Show loading overlay
             document.getElementById('loadingOverlay').classList.add('active');
-            
-            const planType = document.querySelector('.plan-type-btn.active').dataset.planType;
-            const formData = {
-                planType: planType,
-                budget: document.getElementById('mpBudget').value,
-                specificFoods: document.getElementById('mpSpecific').value,
-                dietaryRestrictions: document.getElementById('mpDietR').checked ? 
-                    document.getElementById('mpDietDetails').value : '',
-                useInventory: document.getElementById('useInventory').checked,
-                mood: planType === 'daily' ? 
-                    document.querySelector('.mood-btn.active').dataset.mood : ''
-            };
-            
+
             try {
-                // Call the API to generate meal plan
-                const response = await generateMealPlan(formData);
-                
-                if (planType === 'weekly') {
-                    // Update weekly plan
-                    updateDayCards(response.plan);
-                    updateWeeklySummary(response.summary);
-                    document.getElementById('weeklyPlan').style.display = 'grid';
-                    document.getElementById('weeklySummary').style.display = 'grid';
-                    document.getElementById('dailyMealCard').style.display = 'none';
-                    showToast('Weekly meal plan generated successfully!', 'success');
-                } else {
-                    // Update daily meal
-                    displayDailyMeal(response);
-                    document.getElementById('weeklyPlan').style.display = 'none';
-                    document.getElementById('weeklySummary').style.display = 'none';
-                    showToast('Daily meal generated successfully!', 'success');
-                }
-                
-                // Show action buttons
-                document.getElementById('actionButtons').style.display = 'flex';
+                // Prepare plan data
+                const planData = {
+                    plan_type: currentPlan.type,
+                    plan_data: currentPlan.data,
+                    user_id: currentUser.id
+                };
+
+                // Save to database
+                const { error } = await supabase
+                    .from('meal_plans')
+                    .insert(planData);
+
+                if (error) throw error;
+
+                showToast('Meal plan saved successfully!', 'success');
             } catch (error) {
-                console.error('Error generating meal plan:', error);
-                showToast(`Error: ${error.message}`, 'error');
-                
-                // Show mock data as fallback
-                if (planType === 'weekly') {
-                    updateDayCards(mockWeeklyPlan);
-                    updateWeeklySummary(mockWeeklySummary);
-                    document.getElementById('weeklyPlan').style.display = 'grid';
-                    document.getElementById('weeklySummary').style.display = 'grid';
-                    document.getElementById('dailyMealCard').style.display = 'none';
-                } else {
-                    displayDailyMeal(mockDailyMeal);
-                    document.getElementById('weeklyPlan').style.display = 'none';
-                    document.getElementById('weeklySummary').style.display = 'none';
-                }
-                
-                // Show action buttons
-                document.getElementById('actionButtons').style.display = 'flex';
+                console.error('Error saving meal plan:', error);
+                showToast(`Failed to save: ${error.message}`, 'error');
             } finally {
-                submitBtn.disabled = false;
-                spinner.style.display = 'none';
                 document.getElementById('loadingOverlay').classList.remove('active');
             }
-        });
+        }
+
+        // Initialize day cards for weekly view
+        function initDayCards() {
+            const weeklyPlan = document.getElementById('weeklyPlan');
+            weeklyPlan.innerHTML = '';
+            
+            const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            
+            daysOfWeek.forEach((day, index) => {
+                const card = document.createElement('div');
+                card.className = 'day-card';
+                if (index === 0) card.classList.add('today');
+                
+                card.dataset.dayName = day;
+                
+                card.innerHTML = `
+                    <div class="day-header">
+                        <div class="day-name">${day}</div>
+                        <div class="date">${getDateString(index)}</div>
+                    </div>
+                    <div class="meal-container">
+                        <div class="empty-state">No meals planned</div>
+                    </div>
+                `;
+                
+                weeklyPlan.appendChild(card);
+            });
+        }
         
-        // Action buttons
-        document.getElementById('btn-new-plan').addEventListener('click', function() {
-            document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
-        });
+        // Helper function to get date string
+        function getDateString(dayOffset) {
+            const today = new Date();
+            const date = new Date(today);
+            date.setDate(today.getDate() + dayOffset);
+            
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
         
-        document.getElementById('btn-new-daily').addEventListener('click', function() {
-            document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
-        });
+        // Update day cards with meal data
+        function updateDayCards(weeklyPlan) {
+            const dayCards = document.querySelectorAll('.day-card');
+            
+            dayCards.forEach(card => {
+                const dayName = card.dataset.dayName;
+                const mealContainer = card.querySelector('.meal-container');
+                mealContainer.innerHTML = '';
+                
+                if (weeklyPlan[dayName] && weeklyPlan[dayName].length > 0) {
+                    card.dataset.meals = JSON.stringify(weeklyPlan[dayName]);
+                    
+                    weeklyPlan[dayName].forEach(meal => {
+                        const mealElement = document.createElement('div');
+                        mealElement.className = 'meal-item';
+                        
+                        mealElement.innerHTML = `<strong>${meal.type}:</strong> ${meal.name}`;
+                        mealContainer.appendChild(mealElement);
+                    });
+                } else {
+                    mealContainer.innerHTML = '<div class="empty-state">No meals planned</div>';
+                    card.dataset.meals = '[]';
+                }
+            });
+        }
         
-        document.getElementById('btn-add-to-planner').addEventListener('click', function() {
-            showToast('Meal plan saved to your planner!', 'success');
-        });
+        // Update weekly summary
+        function updateWeeklySummary(summaryData) {
+            document.getElementById('costValue').textContent = `$${summaryData.totalCost}`;
+            document.getElementById('caloriesValue').textContent = summaryData.totalCalories;
+            document.getElementById('prepTimeValue').textContent = summaryData.totalPrepTime;
+            document.getElementById('ingredientsValue').textContent = summaryData.uniqueIngredients;
+        }
         
-        document.getElementById('btn-add-to-calendar').addEventListener('click', function() {
-            showToast('Daily meal added to your calendar!', 'success');
-        });
-    }
-    
-    // Generate meal plan using OpenAI API via Supabase Edge Function
-    async function generateMealPlan(formData) {
-        try {
-            // Call the Supabase Edge Function
-            const response = await fetch(`${supabaseUrl}/functions/v1/generate-meal-plan`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${supabaseKey}`
-                },
-                body: JSON.stringify(formData)
+        // Display daily meal
+        function displayDailyMeal(mealData) {
+            if (!mealData) return;
+            
+            document.getElementById('dailyMealName').textContent = mealData.name || 'Unnamed Meal';
+            document.getElementById('dailyMealType').textContent = mealData.type || 'Meal';
+            document.getElementById('dailyPrepTime').textContent = mealData.prepTime || 'N/A';
+            document.getElementById('dailyCalories').textContent = mealData.calories || 'N/A';
+            document.getElementById('dailyCost').textContent = mealData.cost || 'N/A';
+            document.getElementById('dailyMealDescription').textContent = mealData.description || 'No description available.';
+            
+            // Show the daily meal card
+            document.getElementById('dailyMealCard').style.display = 'block';
+        }
+        
+        // Set up the meal details modal
+        function setupModal() {
+            const modal = document.getElementById('mealModal');
+            const closeModal = document.querySelector('.close-modal');
+            
+            // Event delegation for day cards
+            document.getElementById('weeklyPlan').addEventListener('click', function(event) {
+                const card = event.target.closest('.day-card');
+                if (!card) return;
+                
+                const meals = JSON.parse(card.dataset.meals || '[]');
+                
+                document.getElementById('modalDayName').textContent = card.dataset.dayName;
+                document.getElementById('modalDate').textContent = getDateString(Array.from(card.parentNode.children).indexOf(card));
+                
+                const container = document.getElementById('modalMealsContainer');
+                container.innerHTML = '';
+                
+                if (meals.length > 0) {
+                    meals.forEach(meal => {
+                        const mealDiv = document.createElement('div');
+                        mealDiv.className = 'modal-meal-item';
+                        
+                        mealDiv.innerHTML = `
+                            <div class="meal-header">
+                                <div class="meal-type">
+                                    <i class="fas fa-utensils"></i> ${meal.type}: ${meal.name}
+                                </div>
+                                <button class="meal-toggle">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="meal-description">${meal.description}</div>
+                            <div class="meal-meta">
+                                <span class="prep-time"><i class="fas fa-clock"></i> Prep: ${meal.prepTime}</span>
+                                <span class="calories"><i class="fas fa-fire"></i> Calories: ${meal.calories}</span>
+                            </div>
+                            <div class="meal-details">
+                                <div class="details-section">
+                                    <h5><i class="fas fa-carrot"></i> Ingredients</h5>
+                                    <ul class="ingredients-list">
+                                        <li>Chicken breast <span class="inventory-status available">In stock</span></li>
+                                        <li>Quinoa <span class="inventory-status available">In stock</span></li>
+                                        <li>Cherry tomatoes <span class="inventory-status available">In stock</span></li>
+                                        <li>Cucumber <span class="inventory-status missing">Missing</span></li>
+                                        <li>Feta cheese <span class="inventory-status missing">Missing</span></li>
+                                        <li>Kalamata olives <span class="inventory-status available">In stock</span></li>
+                                        <li>Lemon <span class="inventory-status available">In stock</span></li>
+                                        <li>Olive oil <span class="inventory-status available">In stock</span></li>
+                                        <li>Fresh herbs <span class="inventory-status missing">Missing</span></li>
+                                    </ul>
+                                </div>
+                                <div class="details-section">
+                                    <h5><i class="fas fa-list-ol"></i> Preparation Steps</h5>
+                                    <ol class="steps-list">
+                                        <li>Cook quinoa according to package instructions and let cool</li>
+                                        <li>Season chicken breast with salt, pepper, and herbs, then grill until cooked through</li>
+                                        <li>Chop vegetables and olives</li>
+                                        <li>Prepare dressing by whisking lemon juice, olive oil, and herbs</li>
+                                        <li>Assemble bowls with quinoa, sliced chicken, vegetables, and olives</li>
+                                        <li>Drizzle with dressing and top with crumbled feta cheese</li>
+                                    </ol>
+                                </div>
+                                <div class="meal-actions">
+                                    <button class="meal-action-btn primary add-to-grocery-btn">
+                                        <i class="fas fa-cart-plus"></i> Add Missing to Grocery
+                                    </button>
+                                    <button class="meal-action-btn secondary smart-swap-btn">
+                                        <i class="fas fa-sync-alt"></i> Smart Swap
+                                    </button>
+                                    <button class="meal-action-btn secondary">
+                                        <i class="fas fa-share-alt"></i> Share
+                                    </button>
+                                </div>
+                                <div class="meal-rating">
+                                    <span>Rate this meal:</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star rating-star" data-value="1"></i>
+                                        <i class="fas fa-star rating-star" data-value="2"></i>
+                                        <i class="fas fa-star rating-star" data-value="3"></i>
+                                        <i class="fas fa-star rating-star" data-value="4"></i>
+                                        <i class="fas fa-star rating-star" data-value="5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        container.appendChild(mealDiv);
+                    });
+                } else {
+                    container.innerHTML = '<div class="empty-state">No meals planned for this day</div>';
+                }
+                
+                // Set up toggle buttons
+                document.querySelectorAll('.meal-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function() {
+                        const details = this.closest('.modal-meal-item').querySelector('.meal-details');
+                        const icon = this.querySelector('i');
+                        
+                        details.classList.toggle('expanded');
+                        
+                        if (details.classList.contains('expanded')) {
+                            icon.classList.remove('fa-chevron-down');
+                            icon.classList.add('fa-chevron-up');
+                        } else {
+                            icon.classList.remove('fa-chevron-up');
+                            icon.classList.add('fa-chevron-down');
+                        }
+                    });
+                });
+                
+                // Set up rating stars
+                document.querySelectorAll('.rating-star').forEach(star => {
+                    star.addEventListener('click', function() {
+                        const value = parseInt(this.dataset.value);
+                        const stars = this.parentElement.querySelectorAll('.rating-star');
+                        
+                        stars.forEach((s, i) => {
+                            if (i < value) {
+                                s.classList.add('active');
+                            } else {
+                                s.classList.remove('active');
+                            }
+                        });
+                        
+                        showToast(`Rated ${value} stars!`, 'success');
+                    });
+                    
+                    // Add hover effect
+                    star.addEventListener('mouseover', function() {
+                        const value = parseInt(this.dataset.value);
+                        const stars = this.parentElement.querySelectorAll('.rating-star');
+                        
+                        stars.forEach((s, i) => {
+                            if (i < value) {
+                                s.classList.add('hover');
+                            } else {
+                                s.classList.remove('hover');
+                            }
+                        });
+                    });
+                    
+                    star.addEventListener('mouseout', function() {
+                        const stars = this.parentElement.querySelectorAll('.rating-star');
+                        stars.forEach(s => s.classList.remove('hover'));
+                    });
+                });
+                
+                // Set up action buttons
+                document.querySelectorAll('.add-to-grocery-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        showToast('Missing ingredients added to grocery list!', 'success');
+                    });
+                });
+                
+                document.querySelectorAll('.smart-swap-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        showToast('Finding alternative meals using your inventory...', 'success');
+                    });
+                });
+                
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
             });
             
-            if (!response.ok) {
-                // Try to get detailed error message
-                let errorMessage = `API request failed with status ${response.status}`;
-                try {
-                    const errorData = await response.text();
-                    if (errorData) {
-                        errorMessage += `: ${errorData}`;
-                    }
-                } catch (e) {
-                    // Couldn't parse text error
+            closeModal.addEventListener('click', function() {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
                 }
-                throw new Error(errorMessage);
-            }
+            });
+        }
+        
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Hamburger menu toggle
+            document.getElementById('hamburgerMenu').addEventListener('click', function() {
+                this.classList.toggle('active');
+                document.querySelector('.nav-links').classList.toggle('active');
+                document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
+            });
             
-            // Verify content type before parsing
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Invalid response format from server');
-            }
+            // Plan type toggle
+            document.querySelectorAll('.plan-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.plan-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const planType = this.dataset.planType;
+                    
+                    // Show/hide appropriate sections
+                    document.getElementById('weeklyPlan').style.display = planType === 'weekly' ? 'grid' : 'none';
+                    document.getElementById('weeklySummary').style.display = planType === 'weekly' ? 'grid' : 'none';
+                    document.getElementById('dailyMealCard').style.display = planType === 'daily' ? 'block' : 'none';
+                    document.getElementById('moodSelectorContainer').style.display = planType === 'daily' ? 'block' : 'none';
+                    
+                    // Update submit button text
+                    const submitBtn = document.getElementById('btn-submit-create');
+                    submitBtn.innerHTML = planType === 'weekly' 
+                        ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
+                        : '<i class="fas fa-magic"></i> Generate Daily Meal';
+                });
+            });
             
-            return await response.json();
-        } catch (error) {
-            console.error('Error in generateMealPlan:', error);
+            // Dietary restrictions toggle
+            document.getElementById('mpDietR').addEventListener('change', function() {
+                document.getElementById('dietaryDetails').style.display = 
+                    this.checked ? 'block' : 'none';
+            });
             
-            // Return mock data based on plan type
-            if (formData.planType === 'weekly') {
-                return {
-                    plan: mockWeeklyPlan,
-                    summary: mockWeeklySummary
+            // Mood selector buttons
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Inventory toggle
+            document.getElementById('useInventory').addEventListener('change', function() {
+                document.getElementById('inventoryItems').style.display = 
+                    this.checked ? 'block' : 'none';
+            });
+            
+            // Form submission
+            document.getElementById('mealPlannerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('btn-submit-create');
+                const spinner = document.getElementById('loadingSpinner');
+                
+                submitBtn.disabled = true;
+                spinner.style.display = 'inline-block';
+                
+                // Show loading overlay
+                document.getElementById('loadingOverlay').classList.add('active');
+                
+                const planType = document.querySelector('.plan-type-btn.active').dataset.planType;
+                const formData = {
+                    planType: planType,
+                    budget: document.getElementById('mpBudget').value,
+                    specificFoods: document.getElementById('mpSpecific').value,
+                    dietaryRestrictions: document.getElementById('mpDietR').checked ? 
+                        document.getElementById('mpDietDetails').value : '',
+                    useInventory: document.getElementById('useInventory').checked,
+                    mood: planType === 'daily' ? 
+                        document.querySelector('.mood-btn.active').dataset.mood : ''
                 };
-            } else {
-                return mockDailyMeal;
+                
+                try {
+                    // Call the API to generate meal plan
+                    const response = await generateMealPlan(formData);
+                    
+                    // Store the current plan
+                    currentPlan = {
+                        type: planType,
+                        data: planType === 'weekly' ? {
+                            plan: response.plan,
+                            summary: response.summary
+                        } : response
+                    };
+                    
+                    if (planType === 'weekly') {
+                        // Update weekly plan
+                        updateDayCards(response.plan);
+                        updateWeeklySummary(response.summary);
+                        document.getElementById('weeklyPlan').style.display = 'grid';
+                        document.getElementById('weeklySummary').style.display = 'grid';
+                        document.getElementById('dailyMealCard').style.display = 'none';
+                        showToast('Weekly meal plan generated successfully!', 'success');
+                    } else {
+                        // Update daily meal
+                        displayDailyMeal(response);
+                        document.getElementById('weeklyPlan').style.display = 'none';
+                        document.getElementById('weeklySummary').style.display = 'none';
+                        showToast('Daily meal generated successfully!', 'success');
+                    }
+                    
+                    // Show action buttons
+                    document.getElementById('actionButtons').style.display = 'flex';
+                } catch (error) {
+                    console.error('Error generating meal plan:', error);
+                    showToast(`Error: ${error.message}`, 'error');
+                    
+                    // Show mock data as fallback
+                    if (planType === 'weekly') {
+                        updateDayCards(mockWeeklyPlan);
+                        updateWeeklySummary(mockWeeklySummary);
+                        document.getElementById('weeklyPlan').style.display = 'grid';
+                        document.getElementById('weeklySummary').style.display = 'grid';
+                        document.getElementById('dailyMealCard').style.display = 'none';
+                    } else {
+                        displayDailyMeal(mockDailyMeal);
+                        document.getElementById('weeklyPlan').style.display = 'none';
+                        document.getElementById('weeklySummary').style.display = 'none';
+                    }
+                    
+                    // Show action buttons
+                    document.getElementById('actionButtons').style.display = 'flex';
+                } finally {
+                    submitBtn.disabled = false;
+                    spinner.style.display = 'none';
+                    document.getElementById('loadingOverlay').classList.remove('active');
+                }
+            });
+            
+            // Action buttons
+            document.getElementById('btn-new-plan').addEventListener('click', function() {
+                document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
+            });
+            
+            document.getElementById('btn-new-daily').addEventListener('click', function() {
+                document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
+            });
+            
+            document.getElementById('btn-add-to-planner').addEventListener('click', saveMealPlanToDatabase);
+            
+            document.getElementById('btn-add-to-calendar').addEventListener('click', function() {
+                showToast('Daily meal added to your calendar!', 'success');
+            });
+        }
+        
+        // Generate meal plan using OpenAI API via Supabase Edge Function
+        async function generateMealPlan(formData) {
+            try {
+                // Call the Supabase Edge Function
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-meal-plan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    // Try to get detailed error message
+                    let errorMessage = `API request failed with status ${response.status}`;
+                    try {
+                        const errorData = await response.text();
+                        if (errorData) {
+                            errorMessage += `: ${errorData}`;
+                        }
+                    } catch (e) {
+                        // Couldn't parse text error
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                // Verify content type before parsing
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Invalid response format from server');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error in generateMealPlan:', error);
+                
+                // Return mock data based on plan type
+                if (formData.planType === 'weekly') {
+                    return {
+                        plan: mockWeeklyPlan,
+                        summary: mockWeeklySummary
+                    };
+                } else {
+                    return mockDailyMeal;
+                }
             }
         }
-    }
-    
-    // Show toast notification
-    function showToast(message, type = '') {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = 'toast';
         
-        // Set icon based on type
-        let icon = '';
-        if (type === 'success') {
-            toast.classList.add('success');
-            icon = '<i class="fas fa-check-circle"></i>';
-        } else if (type === 'error') {
-            toast.classList.add('error');
-            icon = '<i class="fas fa-exclamation-circle"></i>';
-        } else if (type === 'warning') {
-            toast.classList.add('warning');
-            icon = '<i class="fas fa-exclamation-triangle"></i>';
-        } else {
-            icon = '<i class="fas fa-info-circle"></i>';
+        // Show toast notification
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast';
+            
+            if (type) {
+                toast.classList.add(type);
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
-        
-        toast.innerHTML = icon + ' ' + message;
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-</script>
+    </script>
 </body>
 </html>
