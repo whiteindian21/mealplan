@@ -1520,13 +1520,13 @@
     <div class="toast" id="toast"></div>
 
    
-    <script>
+      <script>
     // Supabase configuration
     const supabaseUrl = 'https://cnmapvrdamsugtdnuesh.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
     
     // Initialize Supabase client
-    const supabaseclient = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     
     // Mock data for demonstration (fallback)
     const mockInventory = [
@@ -2071,24 +2071,25 @@
                 // Try to get detailed error message
                 let errorMessage = `API request failed with status ${response.status}`;
                 try {
-                    const errorData = await response.json();
-                    if (errorData.message) {
-                        errorMessage = errorData.message;
-                    } else if (errorData.error) {
-                        errorMessage = errorData.error;
+                    const errorData = await response.text();
+                    if (errorData) {
+                        errorMessage += `: ${errorData}`;
                     }
                 } catch (e) {
-                    // Couldn't parse JSON error
+                    // Couldn't parse text error
                 }
                 throw new Error(errorMessage);
+            }
+            
+            // Verify content type before parsing
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format from server');
             }
             
             return await response.json();
         } catch (error) {
             console.error('Error in generateMealPlan:', error);
-            
-            // Enhanced error message
-            const enhancedError = new Error(`Failed to generate meal plan: ${error.message}`);
             
             // Return mock data based on plan type
             if (formData.planType === 'weekly') {
