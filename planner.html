@@ -23,6 +23,7 @@
             --success: #2ecc71;
             --warning: #f39c12;
             --danger: #e74c3c;
+            --dark-blue: #1a2b4d;
         }
 
         * {
@@ -225,6 +226,38 @@
             border-radius: 2px;
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         /* Calendar Container */
         .calendar-container {
             background: white;
@@ -301,6 +334,113 @@
         .snack-event {
             background-color: #eebefa;
             border-color: #cc5de8;
+        }
+
+        /* SQL Editor */
+        .sql-editor-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sql-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 16px;
+            margin-bottom: 15px;
+            background: var(--dark-blue);
+            color: white;
+        }
+
+        .sql-results {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f8f9fa;
+            overflow: auto;
+        }
+
+        .sql-results table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sql-results th {
+            background: var(--secondary);
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .sql-results td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sql-results tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        .sql-results pre {
+            background: #2c3e50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+
+        /* RLS Container */
+        .rls-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .rls-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .rls-card h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rls-card pre {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            font-size: 14px;
         }
 
         /* Meal Details Modal */
@@ -498,7 +638,7 @@
 
         /* Responsive Design */
         @media (max-width: 992px) {
-            .calendar-container {
+            .calendar-container, .sql-editor-container, .rls-container {
                 padding: 15px;
             }
         }
@@ -543,23 +683,23 @@
                 font-size: 2rem;
             }
 
-            .calendar-header {
+            .calendar-header, .editor-header {
                 flex-direction: column;
                 gap: 15px;
             }
 
-            .calendar-actions {
+            .calendar-actions, .editor-actions {
                 width: 100%;
                 justify-content: center;
             }
         }
 
         @media (max-width: 576px) {
-            .calendar-btn span {
+            .calendar-btn span, .editor-btn span {
                 display: none;
             }
 
-            .calendar-btn i {
+            .calendar-btn i, .editor-btn i {
                 margin-right: 0;
             }
         }
@@ -628,6 +768,26 @@
         .meal-type-btn i {
             font-size: 1.2rem;
         }
+        
+        /* Loading indicator */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -644,10 +804,9 @@
                 SmartMeal
             </div>
             <div class="nav-links">
-                <a href="#" class="active"><i class="fas fa-calendar-alt"></i> Planner</a>
-                <a href="#"><i class="fas fa-apple-alt"></i> Meal Plan</a>
-                <a href="#"><i class="fas fa-box-open"></i> Inventory</a>
-                <a href="#"><i class="fas fa-shopping-basket"></i> Grocery</a>
+                <a href="#" class="active" data-tab="planner"><i class="fas fa-calendar-alt"></i> Planner</a>
+                <a href="#" data-tab="database"><i class="fas fa-database"></i> Database</a>
+                <a href="#" data-tab="rls"><i class="fas fa-shield-alt"></i> RLS</a>
                 <div class="user-section">
                     <div class="streak-container">
                         <i class="fas fa-fire"></i> 7 Day Streak
@@ -673,28 +832,145 @@
             </div>
         </div>
 
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-tab="planner">Meal Planner</div>
+            <div class="tab" data-tab="database">SQL Editor</div>
+            <div class="tab" data-tab="rls">RLS Policies</div>
+        </div>
+
         <!-- Main Content -->
-        <h1 class="main-heading">Meal Planner Calendar</h1>
-        
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <h2><i class="fas fa-calendar"></i> Your Meal Schedule</h2>
-                <div class="calendar-actions">
-                    <button class="calendar-btn" id="prevBtn">
-                        <i class="fas fa-chevron-left"></i>
-                        <span>Prev</span>
-                    </button>
-                    <button class="calendar-btn" id="todayBtn">
-                        <i class="fas fa-calendar-day"></i>
-                        <span>Today</span>
-                    </button>
-                    <button class="calendar-btn" id="nextBtn">
-                        <span>Next</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+        <div class="tab-content active" id="plannerTab">
+            <h1 class="main-heading">Meal Planner Calendar</h1>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2><i class="fas fa-calendar"></i> Your Meal Schedule</h2>
+                    <div class="calendar-actions">
+                        <button class="calendar-btn" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Prev</span>
+                        </button>
+                        <button class="calendar-btn" id="todayBtn">
+                            <i class="fas fa-calendar-day"></i>
+                            <span>Today</span>
+                        </button>
+                        <button class="calendar-btn" id="nextBtn">
+                            <span>Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="calendar"></div>
+                <div class="loading-container" id="loadingIndicator">
+                    <div class="loading-spinner"></div>
                 </div>
             </div>
-            <div id="calendar"></div>
+        </div>
+
+        <!-- SQL Editor Tab -->
+        <div class="tab-content" id="databaseTab">
+            <h1 class="main-heading">SQL Editor</h1>
+            
+            <div class="sql-editor-container">
+                <div class="editor-header">
+                    <h2><i class="fas fa-code"></i> Database Query Tool</h2>
+                    <div class="editor-actions">
+                        <button class="calendar-btn" id="runQueryBtn">
+                            <i class="fas fa-play"></i>
+                            <span>Run Query</span>
+                        </button>
+                        <button class="calendar-btn" id="clearQueryBtn">
+                            <i class="fas fa-eraser"></i>
+                            <span>Clear</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <textarea class="sql-editor" id="sqlEditor" placeholder="Enter your SQL query here...">SELECT * FROM meal_plans;</textarea>
+                
+                <div class="sql-results" id="sqlResults">
+                    <p>Query results will appear here...</p>
+                </div>
+            </div>
+            
+            <div class="rls-container">
+                <h2><i class="fas fa-table"></i> Table Structure</h2>
+                <p>Here's the recommended structure for your meal_plans table:</p>
+                
+                <div class="rls-card">
+                    <h3><i class="fas fa-database"></i> meal_plans Table</h3>
+                    <pre>
+CREATE TABLE meal_plans (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    time TEXT,
+    date DATE NOT NULL,
+    type TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);</pre>
+                </div>
+                
+                <div class="rls-card">
+                    <h3><i class="fas fa-plus-circle"></i> How to Fix Missing Date Column</h3>
+                    <pre>
+-- Add the date column to your table
+ALTER TABLE meal_plans
+ADD COLUMN date DATE;
+
+-- Update existing records (set to today's date as example)
+UPDATE meal_plans
+SET date = CURRENT_DATE;</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- RLS Tab -->
+        <div class="tab-content" id="rlsTab">
+            <h1 class="main-heading">Row Level Security</h1>
+            
+            <div class="rls-container">
+                <div class="rls-card">
+                    <h3><i class="fas fa-shield-alt"></i> Enable RLS</h3>
+                    <p>First, enable Row Level Security for your meal_plans table:</p>
+                    <pre>ALTER TABLE meal_plans ENABLE ROW LEVEL SECURITY;</pre>
+                </div>
+                
+                <div class="rls-card">
+                    <h3><i class="fas fa-user-shield"></i> Select Policy</h3>
+                    <pre>
+CREATE POLICY "Users can select their own meal plans" 
+ON meal_plans FOR SELECT 
+USING (auth.uid()::text = user_id);</pre>
+                </div>
+                
+                <div class="rls-card">
+                    <h3><i class="fas fa-plus-square"></i> Insert Policy</h3>
+                    <pre>
+CREATE POLICY "Users can insert their own meal plans" 
+ON meal_plans FOR INSERT 
+WITH CHECK (auth.uid()::text = user_id);</pre>
+                </div>
+                
+                <div class="rls-card">
+                    <h3><i class="fas fa-edit"></i> Update Policy</h3>
+                    <pre>
+CREATE POLICY "Users can update their own meal plans" 
+ON meal_plans FOR UPDATE 
+USING (auth.uid()::text = user_id) 
+WITH CHECK (auth.uid()::text = user_id);</pre>
+                </div>
+                
+                <div class="rls-card">
+                    <h3><i class="fas fa-trash-alt"></i> Delete Policy</h3>
+                    <pre>
+CREATE POLICY "Users can delete their own meal plans" 
+ON meal_plans FOR DELETE 
+USING (auth.uid()::text = user_id);</pre>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -749,68 +1025,12 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Simulated database for demonstration
-        const mockDatabase = {
-            mealPlans: [
-                {
-                    id: '1',
-                    user_id: 'demo-user',
-                    title: 'Healthy Breakfast',
-                    description: 'Oatmeal with fruits and nuts',
-                    time: '8:00 AM',
-                    date: new Date().toISOString().split('T')[0],
-                    type: 'breakfast'
-                },
-                {
-                    id: '2',
-                    user_id: 'demo-user',
-                    title: 'Team Lunch',
-                    description: 'Lunch with the development team',
-                    time: '1:00 PM',
-                    date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0],
-                    type: 'lunch'
-                },
-                {
-                    id: '3',
-                    user_id: 'demo-user',
-                    title: 'Family Dinner',
-                    description: 'Homemade pasta with tomato sauce',
-                    time: '7:30 PM',
-                    date: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0],
-                    type: 'dinner'
-                }
-            ],
-            
-            getMealPlans: function(userId) {
-                return this.mealPlans.filter(plan => plan.user_id === userId);
-            },
-            
-            saveMealPlan: function(plan) {
-                if (plan.id) {
-                    // Update existing plan
-                    const index = this.mealPlans.findIndex(p => p.id === plan.id);
-                    if (index !== -1) {
-                        this.mealPlans[index] = plan;
-                    }
-                } else {
-                    // Add new plan
-                    plan.id = 'plan-' + Date.now();
-                    this.mealPlans.push(plan);
-                }
-                return plan;
-            },
-            
-            deleteMealPlan: function(id) {
-                this.mealPlans = this.mealPlans.filter(plan => plan.id !== id);
-            }
-        };
-
         // Supabase Configuration
         const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
         
         // Initialize Supabase client
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // DOM Elements
         const calendarEl = document.getElementById('calendar');
@@ -828,6 +1048,14 @@
         const todayBtn = document.getElementById('todayBtn');
         const nextBtn = document.getElementById('nextBtn');
         const mealTypeButtons = document.querySelectorAll('.meal-type-btn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const sqlEditor = document.getElementById('sqlEditor');
+        const sqlResults = document.getElementById('sqlResults');
+        const runQueryBtn = document.getElementById('runQueryBtn');
+        const clearQueryBtn = document.getElementById('clearQueryBtn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const navLinks = document.querySelectorAll('.nav-links a');
         
         // Global variables
         let calendar;
@@ -848,7 +1076,7 @@
             setupEventListeners();
             
             // Load meal plans
-            loadMealPlans();
+            await loadMealPlans();
         });
         
         // Initialize calendar
@@ -873,8 +1101,18 @@
                     selectedEvent = null;
                     showMealModal('Add Meal Plan', info.date);
                 },
-                events: function(fetchInfo, successCallback, failureCallback) {
-                    loadMealPlansForCalendar(fetchInfo, successCallback);
+                events: async function(fetchInfo, successCallback, failureCallback) {
+                    try {
+                        showLoading();
+                        const events = await loadMealPlansForCalendar(fetchInfo);
+                        successCallback(events);
+                    } catch (error) {
+                        console.error('Error fetching events:', error);
+                        failureCallback(error);
+                        showToast('Failed to load meal plans: ' + error.message, 'error');
+                    } finally {
+                        hideLoading();
+                    }
                 },
                 eventContent: function(arg) {
                     const type = arg.event.extendedProps.type || 'breakfast';
@@ -911,25 +1149,21 @@
         }
         
         // Load meal plans for calendar
-        async function loadMealPlansForCalendar(fetchInfo, successCallback) {
-            if (!currentUser) return;
+        async function loadMealPlansForCalendar(fetchInfo) {
+            if (!currentUser) return [];
             
             try {
-                // In a real app, we would fetch from Supabase
-                // const { data, error } = await supabase
-                //     .from('meal_plans')
-                //     .select('*')
-                //     .eq('user_id', currentUser.id)
-                //     .gte('date', fetchInfo.start.toISOString().split('T')[0])
-                //     .lt('date', fetchInfo.end.toISOString().split('T')[0]);
+                // Fetch meal plans from Supabase
+                const { data, error } = await supabase
+                    .from('meal_plans')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .gte('date', fetchInfo.start.toISOString().split('T')[0])
+                    .lt('date', fetchInfo.end.toISOString().split('T')[0]);
                 
-                // For demo, use the mock database
-                const data = mockDatabase.getMealPlans(currentUser.id).filter(plan => {
-                    const planDate = new Date(plan.date);
-                    return planDate >= fetchInfo.start && planDate < fetchInfo.end;
-                });
+                if (error) throw error;
                 
-                const events = data.map(plan => ({
+                return data.map(plan => ({
                     id: plan.id,
                     title: plan.title,
                     start: plan.date,
@@ -940,10 +1174,9 @@
                     }
                 }));
                 
-                successCallback(events);
             } catch (error) {
                 console.error('Error loading meal plans:', error);
-                showToast('Failed to load meal plans', 'error');
+                throw error;
             }
         }
         
@@ -1022,8 +1255,12 @@
                 
                 if (selectedEvent) {
                     // Update existing meal plan
-                    mealPlanData.id = selectedEvent.id;
-                    mockDatabase.saveMealPlan(mealPlanData);
+                    const { data, error } = await supabase
+                        .from('meal_plans')
+                        .update(mealPlanData)
+                        .eq('id', selectedEvent.id);
+                    
+                    if (error) throw error;
                     
                     // Update event in calendar
                     selectedEvent.setProp('title', title);
@@ -1034,11 +1271,16 @@
                     showToast('Meal plan updated successfully!', 'success');
                 } else {
                     // Create new meal plan
-                    const newPlan = mockDatabase.saveMealPlan(mealPlanData);
+                    const { data, error } = await supabase
+                        .from('meal_plans')
+                        .insert([mealPlanData])
+                        .select();
+                    
+                    if (error) throw error;
                     
                     // Add to calendar
                     calendar.addEvent({
-                        id: newPlan.id,
+                        id: data[0].id,
                         title: title,
                         start: selectedDate,
                         extendedProps: {
@@ -1054,7 +1296,7 @@
                 closeMealModal();
             } catch (error) {
                 console.error('Error saving meal plan:', error);
-                showToast('Failed to save meal plan', 'error');
+                showToast('Failed to save meal plan: ' + error.message, 'error');
             }
         }
         
@@ -1063,13 +1305,21 @@
             if (!selectedEvent) return;
             
             try {
-                mockDatabase.deleteMealPlan(selectedEvent.id);
+                // Delete from Supabase
+                const { error } = await supabase
+                    .from('meal_plans')
+                    .delete()
+                    .eq('id', selectedEvent.id);
+                
+                if (error) throw error;
+                
+                // Remove from calendar
                 selectedEvent.remove();
                 showToast('Meal plan deleted successfully!', 'success');
                 closeMealModal();
             } catch (error) {
                 console.error('Error deleting meal plan:', error);
-                showToast('Failed to delete meal plan', 'error');
+                showToast('Failed to delete meal plan: ' + error.message, 'error');
             }
         }
         
@@ -1078,6 +1328,56 @@
             mealModal.classList.remove('active');
             document.body.style.overflow = 'auto';
             selectedEvent = null;
+        }
+        
+        // Run SQL query
+        async function runSqlQuery() {
+            const query = sqlEditor.value.trim();
+            if (!query) {
+                showToast('Please enter a SQL query', 'warning');
+                return;
+            }
+            
+            try {
+                // Execute the query
+                const { data, error } = await supabase.rpc('execute_sql', { query });
+                
+                if (error) throw error;
+                
+                // Display results
+                if (data && data.length > 0) {
+                    // Create table for results
+                    let tableHtml = '<table><thead><tr>';
+                    
+                    // Get column names
+                    const columns = Object.keys(data[0]);
+                    columns.forEach(col => {
+                        tableHtml += `<th>${col}</th>`;
+                    });
+                    
+                    tableHtml += '</tr></thead><tbody>';
+                    
+                    // Add rows
+                    data.forEach(row => {
+                        tableHtml += '<tr>';
+                        columns.forEach(col => {
+                            tableHtml += `<td>${row[col]}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    });
+                    
+                    tableHtml += '</tbody></table>';
+                    sqlResults.innerHTML = tableHtml;
+                } else {
+                    sqlResults.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Query executed successfully. No data returned.</div>';
+                }
+                
+                showToast('Query executed successfully', 'success');
+            } catch (error) {
+                console.error('Error executing query:', error);
+                sqlResults.innerHTML = `<pre class="error">${error.message}</pre>`;
+                showToast('Query failed: ' + error.message, 'error');
+            }
         }
         
         // Set up event listeners
@@ -1104,6 +1404,52 @@
             
             nextBtn.addEventListener('click', function() {
                 calendar.next();
+            });
+            
+            // SQL Editor
+            runQueryBtn.addEventListener('click', runSqlQuery);
+            clearQueryBtn.addEventListener('click', function() {
+                sqlEditor.value = '';
+                sqlResults.innerHTML = '<p>Query results will appear here...</p>';
+            });
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Update tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId + 'Tab') {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Nav link tab switching
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.dataset.tab;
+                    
+                    // Update nav links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Activate correct tab
+                    document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+                    document.getElementById(`${tabId}Tab`).classList.add('active');
+                });
             });
             
             // Close modal when clicking outside
@@ -1139,9 +1485,17 @@
         }
         
         // Load meal plans
-        function loadMealPlans() {
-            // In a real app, this would load from Supabase
-            // For demo, we're using the mock database
+        async function loadMealPlans() {
+            // Refetch events when the page loads
+            try {
+                showLoading();
+                calendar.refetchEvents();
+            } catch (error) {
+                console.error('Error loading meal plans:', error);
+                showToast('Failed to load meal plans: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
         }
         
         // Show toast notification
@@ -1156,6 +1510,16 @@
             
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Show loading indicator
+        function showLoading() {
+            loadingIndicator.style.display = 'flex';
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
         }
     </script>
 </body>
