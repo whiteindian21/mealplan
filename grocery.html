@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMeal - Grocery List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #e74c3c;
+            --primary-light: #ff9a9e;
+            --secondary: #3498db;
+            --dark: #2c3e50;
+            --light: #f8f5f0;
+            --cream: #f8f5f0;
+            --coral: #ff7e6b;
+            --apricot: #ffbe86;
+            --sage: #a2c5ac;
+            --gray: #95a5a6;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #e4e0d8 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Floating decorative elements */
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.2;
+        }
+        .floating-element:nth-child(1) {
+            width: 120px;
+            height: 120px;
+            background: var(--coral);
+            top: 10%;
+            left: 5%;
+            animation: float 15s infinite ease-in-out;
+        }
+        .floating-element:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            background: var(--sage);
+            top: 25%;
+            right: 8%;
+            animation: float 12s infinite ease-in-out;
+            animation-delay: -3s;
+        }
+        .floating-element:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            background: var(--apricot);
+            bottom: 15%;
+            left: 10%;
+            animation: float 18s infinite ease-in-out;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-20px) translateX(10px); }
+            50% { transform: translateY(10px) translateX(-15px); }
+            75% { transform: translateY(-15px) translateX(-10px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .hamburger-menu {
+            display: none;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            z-index: 1000;
+        }
+
+        .hamburger-menu span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background: var(--dark);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* User section */
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Main Content */
+        .main-heading {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: var(--dark);
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-heading::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border-radius: 2px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 18px;
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab-btn.active {
+            background: var(--sage);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(162, 197, 172, 0.2);
+        }
+
+        /* Grocery Container */
+        .grocery-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .grocery-container.active {
+            display: block;
+        }
+
+        .grocery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .grocery-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .grocery-btn {
+            background: var(--sage);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .grocery-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .grocery-btn.primary {
+            background: linear-gradient(45deg, var(--coral), var(--apricot));
+        }
+
+        .grocery-btn.danger {
+            background: var(--danger);
+        }
+
+        .grocery-btn i {
+            font-size: 1.1rem;
+        }
+
+        /* Grocery Categories */
+        .grocery-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .category-card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .category-header {
+            background: var(--sage);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .grocery-items {
+            padding: 20px;
+            list-style-type: none;
+        }
+
+        .grocery-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .grocery-item:last-child {
+            border-bottom: none;
+        }
+
+        .grocery-item:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .grocery-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            accent-color: var(--sage);
+            cursor: pointer;
+        }
+
+        .item-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .item-quantity {
+            background: rgba(162, 197, 172, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 0 10px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .item-action-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-action-btn:hover {
+            background: #f1f1f1;
+            color: var(--dark);
+        }
+
+        .item-action-btn.edit:hover {
+            color: var(--warning);
+        }
+
+        .item-action-btn.delete:hover {
+            color: var(--danger);
+        }
+
+        /* Checked item style */
+        .grocery-item.checked .item-name {
+            text-decoration: line-through;
+            color: var(--gray);
+        }
+
+        .grocery-item.checked .item-quantity {
+            background: rgba(149, 165, 166, 0.2);
+        }
+
+        /* Stores Section */
+        .stores-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .stores-container.active {
+            display: block;
+        }
+
+        .stores-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .location-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(162, 197, 172, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .location-info i {
+            color: var(--sage);
+        }
+
+        .store-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .store-card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .store-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .store-image {
+            height: 180px;
+            background: linear-gradient(45deg, #a2c5ac, #8ab8a0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+        }
+
+        .store-details {
+            padding: 20px;
+        }
+
+        .store-name {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .store-address {
+            color: var(--gray);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .store-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .store-distance {
+            background: rgba(162, 197, 172, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .store-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        .store-status.open {
+            color: var(--success);
+        }
+
+        .store-status.closed {
+            color: var(--danger);
+        }
+
+        .directions-btn {
+            background: var(--sage);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .directions-btn:hover {
+            background: var(--apricot);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .toast i {
+            margin-right: 10px;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .grocery-container, .stores-container {
+                padding: 20px;
+            }
+            
+            .grocery-header, .stores-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .grocery-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 90px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+                z-index: 100;
+                gap: 15px;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+
+            .hamburger-menu.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+
+            .hamburger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger-menu.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+
+            .main-heading {
+                font-size: 2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .grocery-categories, .store-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .grocery-btn span {
+                display: none;
+            }
+            
+            .grocery-btn i {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating decorative elements -->
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                SmartMeal
+            </div>
+            <div class="nav-links">
+                <a href="planner.html"><i class="fas fa-calendar-alt"></i> Planner</a>
+                <a href="meal-plan.html"><i class="fas fa-apple-alt"></i> Meal Plan</a>
+                <a href="inventory.html"><i class="fas fa-box-open"></i> Inventory</a>
+                <a href="grocery.html" class="active"><i class="fas fa-shopping-basket"></i> Grocery</a>
+                <div class="user-section">
+                    <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></a>
+                </div>
+            </div>
+            <div class="hamburger-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <h1 class="main-heading">Your Smart Grocery List</h1>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="grocery">
+                <i class="fas fa-list"></i> Grocery List
+            </button>
+            <button class="tab-btn" data-tab="stores">
+                <i class="fas fa-store"></i> Nearby Stores
+            </button>
+        </div>
+        
+        <!-- Grocery List Container -->
+        <div class="grocery-container active" id="groceryContainer">
+            <div class="grocery-header">
+                <h2><i class="fas fa-shopping-basket"></i> AI-Generated Grocery List</h2>
+                <div class="grocery-actions">
+                    <button class="grocery-btn" id="clearCheckedBtn">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Clear Checked</span>
+                    </button>
+                    <button class="grocery-btn danger" id="clearAllBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Clear All</span>
+                    </button>
+                    <button class="grocery-btn primary" id="generateBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Regenerate</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grocery-categories" id="groceryCategories">
+                <!-- Categories will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Stores Container -->
+        <div class="stores-container" id="storesContainer">
+            <div class="stores-header">
+                <h2><i class="fas fa-store"></i> Nearby Grocery Stores</h2>
+                <div class="location-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="locationText">Finding your location...</span>
+                </div>
+            </div>
+            
+            <div class="store-cards" id="storeCards">
+                <!-- Stores will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Supabase Configuration
+     const supabaseUrl = 'https://tciqpgkdvnjhqnunbals.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjaXFwZ2tkdm5qaHFudW5iYWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzc2MjEsImV4cCI6MjA2NTg1MzYyMX0.ZCsOZFFX8YjcWPAF3YTzmNzcOYTPlG8ZlB1vI--BHDc';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // DOM Elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const groceryContainer = document.getElementById('groceryContainer');
+        const storesContainer = document.getElementById('storesContainer');
+        const groceryCategories = document.getElementById('groceryCategories');
+        const storeCards = document.getElementById('storeCards');
+        const locationText = document.getElementById('locationText');
+        const clearCheckedBtn = document.getElementById('clearCheckedBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const navLinks = document.querySelector('.nav-links');
+        
+        // Global variables
+        let currentUser = null;
+        let groceryItems = [];
+        let userLocation = null;
+        
+        // Category configuration
+        const categories = [
+            { id: 'produce', name: 'Produce', icon: 'fas fa-leaf', color: '#a2c5ac' },
+            { id: 'dairy', name: 'Dairy & Eggs', icon: 'fas fa-egg', color: '#ffd8a6' },
+            { id: 'meat', name: 'Meat & Seafood', icon: 'fas fa-drumstick-bite', color: '#ffa7a7' },
+            { id: 'pantry', name: 'Pantry', icon: 'fas fa-bread-slice', color: '#d4a5a5' },
+            { id: 'frozen', name: 'Frozen', icon: 'fas fa-snowflake', color: '#a8d8ea' },
+            { id: 'bakery', name: 'Bakery', icon: 'fas fa-cookie', color: '#e2c275' },
+            { id: 'beverages', name: 'Beverages', icon: 'fas fa-coffee', color: '#c7a17a' },
+            { id: 'other', name: 'Other', icon: 'fas fa-shopping-basket', color: '#95a5a6' }
+        ];
+        
+        // Sample AI-generated grocery list
+        const aiGeneratedList = [
+            { id: 1, item_name: 'Organic Chicken Breast', quantity: '500g', category: 'meat', checked: false },
+            { id: 2, item_name: 'Broccoli', quantity: '2 heads', category: 'produce', checked: false },
+            { id: 3, item_name: 'Brown Rice', quantity: '1kg', category: 'pantry', checked: false },
+            { id: 4, item_name: 'Extra Virgin Olive Oil', quantity: '250ml', category: 'pantry', checked: false },
+            { id: 5, item_name: 'Greek Yogurt', quantity: '500g', category: 'dairy', checked: false },
+            { id: 6, item_name: 'Mixed Berries', quantity: '200g', category: 'frozen', checked: false },
+            { id: 7, item_name: 'Whole Grain Bread', quantity: '1 loaf', category: 'bakery', checked: false },
+            { id: 8, item_name: 'Almond Milk', quantity: '1L', category: 'beverages', checked: false },
+            { id: 9, item_name: 'Free-Range Eggs', quantity: '12', category: 'dairy', checked: false },
+            { id: 10, item_name: 'Quinoa', quantity: '500g', category: 'pantry', checked: false },
+            { id: 11, item_name: 'Spinach', quantity: '200g', category: 'produce', checked: false },
+            { id: 12, item_name: 'Avocados', quantity: '3', category: 'produce', checked: false }
+        ];
+        
+        // Sample nearby stores
+        const nearbyStores = [
+            { 
+                id: 1, 
+                name: "Fresh Market", 
+                address: "123 Main St, Anytown, ST 12345", 
+                distance: "0.8 mi", 
+                open: true, 
+                rating: 4.7 
+            },
+            { 
+                id: 2, 
+                name: "Organic Grocers", 
+                address: "456 Oak Ave, Anytown, ST 12345", 
+                distance: "1.2 mi", 
+                open: true, 
+                rating: 4.5 
+            },
+            { 
+                id: 3, 
+                name: "Value Mart", 
+                address: "789 Pine Rd, Anytown, ST 12345", 
+                distance: "0.5 mi", 
+                open: true, 
+                rating: 4.2 
+            },
+            { 
+                id: 4, 
+                name: "Farmers Co-op", 
+                address: "321 Elm Blvd, Anytown, ST 12345", 
+                distance: "1.8 mi", 
+                open: false, 
+                rating: 4.8 
+            }
+        ];
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check user session
+            const { data: { user } } = await supabase.auth.getUser();
+            currentUser = user;
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Load grocery items
+            loadGroceryItems();
+            
+            // Get user location
+            getUserLocation();
+        });
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab switching
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active tab button
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show the corresponding container
+                    const tab = this.dataset.tab;
+                    groceryContainer.classList.remove('active');
+                    storesContainer.classList.remove('active');
+                    
+                    if (tab === 'grocery') {
+                        groceryContainer.classList.add('active');
+                    } else {
+                        storesContainer.classList.add('active');
+                    }
+                });
+            });
+            
+            // Clear checked items
+            clearCheckedBtn.addEventListener('click', clearCheckedItems);
+            
+            // Clear all items
+            clearAllBtn.addEventListener('click', clearAllItems);
+            
+            // Regenerate list
+            generateBtn.addEventListener('click', generateNewList);
+            
+            // Logout button
+            logoutBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                const { error } = await supabase.auth.signOut();
+                if (!error) {
+                    showToast('Logged out successfully', 'success');
+                    currentUser = null;
+                    // Redirect to login or reload
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Logout failed: ' + error.message, 'error');
+                }
+            });
+            
+            // Hamburger menu toggle
+            hamburgerMenu.addEventListener('click', function() {
+                this.classList.toggle('active');
+                navLinks.classList.toggle('active');
+                document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
+            });
+        }
+        
+        // Load grocery items from Supabase
+        async function loadGroceryItems() {
+            if (!currentUser) {
+                // For demo, use the sample list
+                groceryItems = aiGeneratedList;
+                renderGroceryList();
+                return;
+            }
+            
+            const { data, error } = await supabase
+                .from('grocery_list')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: true });
+            
+            if (error) {
+                console.error('Error loading grocery items:', error);
+                showToast('Failed to load grocery list', 'error');
+                return;
+            }
+            
+            groceryItems = data || [];
+            
+            // If no items, generate from AI
+            if (groceryItems.length === 0) {
+                generateNewList();
+            } else {
+                renderGroceryList();
+            }
+        }
+        
+        // Render grocery list
+        function renderGroceryList() {
+            if (groceryItems.length === 0) {
+                groceryCategories.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-basket"></i>
+                        <p>Your grocery list is empty</p>
+                        <p>Click "Regenerate" to create a new list</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Group items by category
+            const itemsByCategory = {};
+            groceryItems.forEach(item => {
+                if (!itemsByCategory[item.category]) {
+                    itemsByCategory[item.category] = [];
+                }
+                itemsByCategory[item.category].push(item);
+            });
+            
+            // Render categories
+            let categoriesHTML = '';
+            
+            categories.forEach(category => {
+                const items = itemsByCategory[category.id] || [];
+                
+                if (items.length === 0) return;
+                
+                const categoryItemsHTML = items.map(item => `
+                    <li class="grocery-item ${item.checked ? 'checked' : ''}" data-id="${item.id}">
+                        <input type="checkbox" id="item-${item.id}" ${item.checked ? 'checked' : ''}>
+                        <label for="item-${item.id}" class="item-name">${item.item_name}</label>
+                        ${item.quantity ? `<span class="item-quantity">${item.quantity}</span>` : ''}
+                        <div class="item-actions">
+                            <button class="item-action-btn edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="item-action-btn delete" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </li>
+                `).join('');
+                
+                categoriesHTML += `
+                    <div class="category-card">
+                        <div class="category-header" style="background: ${category.color}">
+                            <i class="${category.icon}"></i>
+                            ${category.name}
+                        </div>
+                        <ul class="grocery-items">
+                            ${categoryItemsHTML}
+                        </ul>
+                    </div>
+                `;
+            });
+            
+            groceryCategories.innerHTML = categoriesHTML;
+            
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.grocery-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const itemId = this.closest('.grocery-item').dataset.id;
+                    toggleItemChecked(itemId, this.checked);
+                });
+            });
+            
+            // Add event listeners to edit buttons
+            document.querySelectorAll('.item-action-btn.edit').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.closest('.grocery-item').dataset.id;
+                    editItem(itemId);
+                });
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.item-action-btn.delete').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.closest('.grocery-item').dataset.id;
+                    deleteItem(itemId);
+                });
+            });
+        }
+        
+        // Toggle item checked status
+        async function toggleItemChecked(itemId, checked) {
+            // In a real app, this would update the database
+            const item = groceryItems.find(i => i.id == itemId);
+            if (item) {
+                item.checked = checked;
+                
+                // Update UI immediately
+                const itemElement = document.querySelector(`.grocery-item[data-id="${itemId}"]`);
+                if (itemElement) {
+                    if (checked) {
+                        itemElement.classList.add('checked');
+                    } else {
+                        itemElement.classList.remove('checked');
+                    }
+                }
+                
+                showToast(`Item ${checked ? 'checked' : 'unchecked'}`, 'success');
+            }
+        }
+        
+        // Edit item
+        function editItem(itemId) {
+            const item = groceryItems.find(i => i.id == itemId);
+            if (!item) return;
+            
+            // For demo, just show a message
+            showToast(`Editing: ${item.item_name}`, 'success');
+        }
+        
+        // Delete item
+        async function deleteItem(itemId) {
+            if (!confirm('Are you sure you want to remove this item?')) return;
+            
+            // In a real app, this would delete from the database
+            groceryItems = groceryItems.filter(i => i.id != itemId);
+            renderGroceryList();
+            showToast('Item removed', 'success');
+        }
+        
+        // Clear checked items
+        async function clearCheckedItems() {
+            const checkedItems = groceryItems.filter(item => item.checked);
+            if (checkedItems.length === 0) {
+                showToast('No checked items to clear', 'warning');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to clear ${checkedItems.length} checked items?`)) return;
+            
+            groceryItems = groceryItems.filter(item => !item.checked);
+            renderGroceryList();
+            showToast(`Cleared ${checkedItems.length} items`, 'success');
+        }
+        
+        // Clear all items
+        async function clearAllItems() {
+            if (groceryItems.length === 0) {
+                showToast('Your grocery list is already empty', 'warning');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to clear your entire grocery list?')) return;
+            
+            groceryItems = [];
+            renderGroceryList();
+            showToast('Grocery list cleared', 'success');
+        }
+        
+        // Generate new AI list
+        function generateNewList() {
+            // For demo, use the sample list
+            groceryItems = [...aiGeneratedList];
+            renderGroceryList();
+            showToast('New grocery list generated from your meal plan', 'success');
+        }
+        
+        // Get user location
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        locationText.textContent = `Located: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+                        renderNearbyStores();
+                    },
+                    error => {
+                        console.error('Error getting location:', error);
+                        locationText.textContent = 'Location access denied. Using default location.';
+                        // Default to New York City
+                        userLocation = { lat: 40.7128, lng: -74.0060 };
+                        renderNearbyStores();
+                    }
+                );
+            } else {
+                locationText.textContent = 'Geolocation not supported. Using default location.';
+                userLocation = { lat: 40.7128, lng: -74.0060 };
+                renderNearbyStores();
+            }
+        }
+        
+        // Render nearby stores
+        function renderNearbyStores() {
+            let storesHTML = '';
+            
+            nearbyStores.forEach(store => {
+                storesHTML += `
+                    <div class="store-card">
+                        <div class="store-image">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-details">
+                            <h3 class="store-name">
+                                <i class="fas fa-store"></i> ${store.name}
+                            </h3>
+                            <p class="store-address">${store.address}</p>
+                            <div class="store-meta">
+                                <span class="store-distance">${store.distance}</span>
+                                <span class="store-status ${store.open ? 'open' : 'closed'}">
+                                    <i class="fas fa-circle"></i>
+                                    ${store.open ? 'Open Now' : 'Closed'}
+                                </span>
+                            </div>
+                            <button class="directions-btn">
+                                <i class="fas fa-directions"></i> Directions
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            storeCards.innerHTML = storesHTML;
+            
+            // Add event listeners to direction buttons
+            document.querySelectorAll('.directions-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const storeName = this.closest('.store-card').querySelector('.store-name').textContent.trim();
+                    showToast(`Getting directions to ${storeName}`, 'success');
+                });
+            });
+        }
+        
+        // Show toast notification
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast';
+            
+            if (type) {
+                toast.classList.add(type);
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

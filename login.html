@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Smart Meal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --coral: #FF7B54;
+      --apricot: #FFB26B;
+      --sage: #4B8673;
+      --mint: #A6D1CA;
+      --cream: #FFF6F4;
+      --chocolate: #2C2C2C;
+      --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: radial-gradient(circle at top left, var(--cream) 0%, #ffffff 100%);
+      color: var(--chocolate);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .login-container {
+      max-width: 1000px;
+      width: 100%;
+      background: white;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+      position: relative;
+      z-index: 1;
+      display: flex;
+    }
+    
+    .login-decoration {
+      flex: 1;
+      background: linear-gradient(135deg, var(--coral), var(--apricot));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 40px;
+      color: white;
+      text-align: center;
+    }
+    
+    .login-decoration::before {
+      content: "";
+      position: absolute;
+      width: 300%;
+      height: 300%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .logo {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--coral);
+      font-size: 2.2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logo h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .logo h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 400;
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    
+    .benefits {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin-top: 30px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .benefit-item {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+      transition: var(--transition);
+    }
+    
+    .benefit-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .benefit-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--coral);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      color: white;
+      font-size: 1.5rem;
+    }
+    
+    .benefit-item h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      color: var(--chocolate);
+    }
+    
+    .benefit-item p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+    
+    .login-form {
+      flex: 1;
+      padding: 60px 50px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--cream);
+    }
+    
+    .login-form h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: var(--chocolate);
+      position: relative;
+    }
+    
+    .login-form h1::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(to right, var(--coral), var(--apricot));
+      border-radius: 2px;
+    }
+    
+    .welcome-text {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 35px;
+      max-width: 500px;
+    }
+    
+    .forms {
+      width: 100%;
+      max-width: 450px;
+      margin: 0 auto;
+    }
+    
+    .input-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--chocolate);
+      font-size: 0.95rem;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 16px 20px 16px 55px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: var(--transition);
+      outline: none;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      font-family: 'Montserrat', sans-serif;
+      background: white;
+    }
+    
+    .input-group input:focus {
+      border-color: var(--coral);
+      box-shadow: 0 10px 25px rgba(255, 123, 84, 0.15);
+    }
+    
+    .input-icon {
+      position: absolute;
+      left: 20px;
+      top: 42px;
+      color: #7f8c8d;
+      font-size: 1.2rem;
+    }
+    
+    .btn-submit {
+      background: linear-gradient(135deg, var(--coral), var(--apricot));
+      color: white;
+      padding: 18px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+      display: block;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(255, 123, 84, 0.4);
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 20px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(255, 123, 84, 0.5);
+    }
+    
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+    
+    .btn-submit i {
+      margin-right: 10px;
+    }
+    
+    .create-account {
+      text-align: center;
+      margin-top: 25px;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    
+    .create-account a {
+      color: var(--coral);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .create-account a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -2px;
+      left: 0;
+      background-color: var(--coral);
+      transition: var(--transition);
+    }
+    
+    .create-account a:hover::after {
+      width: 100%;
+    }
+    
+    .close-btn {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      font-size: 1.8rem;
+      color: #666;
+      cursor: pointer;
+      transition: var(--transition);
+      z-index: 3;
+      background: none;
+      border: none;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    .close-btn:hover {
+      color: var(--coral);
+      background: rgba(255, 123, 84, 0.1);
+      transform: rotate(90deg);
+    }
+    
+    .error-message {
+      color: var(--coral);
+      font-size: 0.9rem;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    .success-message {
+      color: var(--sage);
+      font-size: 0.9rem;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+    
+    .decor-circle {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 123, 84, 0.2);
+      z-index: -1;
+      top: 30%;
+      left: 10%;
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    .decor-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--coral);
+      z-index: -1;
+      bottom: 40%;
+      right: 15%;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    /* Password toggle */
+    .password-toggle {
+      position: absolute;
+      right: 20px;
+      top: 42px;
+      color: #7f8c8d;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    
+    /* Forgot password link */
+    .forgot-password {
+      text-align: right;
+      margin-top: 5px;
+    }
+    
+    .forgot-password a {
+      color: var(--coral);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 900px) {
+      .login-container {
+        flex-direction: column;
+        max-width: 600px;
+      }
+      
+      .login-decoration {
+        padding: 40px 30px;
+      }
+      
+      .login-form {
+        padding: 50px 30px;
+      }
+      
+      .benefits {
+        max-width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+      
+      .benefit-item {
+        flex: 1;
+        min-width: 250px;
+        margin-bottom: 0;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .login-form h1 {
+        font-size: 2.2rem;
+      }
+      
+      .logo h1 {
+        font-size: 2.5rem;
+      }
+      
+      .benefit-item {
+        min-width: 100%;
+      }
+      
+      .login-form {
+        padding: 40px 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <button class="close-btn" onclick="window.location.href='index.html'" aria-label="Close form">&times;</button>
+    
+    <div class="login-decoration">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-utensils"></i>
+        </div>
+        <h1>Smart Meal</h1>
+        <h2>HEALTHY EATING</h2>
+      </div>
+      <p>Your journey to healthier eating continues</p>
+      
+      <div class="benefits">
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <h4>Personalized Plans</h4>
+          <p>Access your custom meal recommendations</p>
+        </div>
+        
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h4>Track Progress</h4>
+          <p>Monitor your health and nutrition goals</p>
+        </div>
+        
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <i class="fas fa-history"></i>
+          </div>
+          <h4>Meal History</h4>
+          <p>Review your past meals and recipes</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="login-form">
+      <div class="decor-circle"></div>
+      <div class="decor-dot"></div>
+      
+      <h1>Welcome Back</h1>
+      <p class="welcome-text">Sign in to continue your journey to healthier eating</p>
+      
+      <form id="loginForm" class="forms" novalidate>
+        <div class="input-group">
+          <label for="email">Email Address</label>
+          <i class="fas fa-envelope input-icon"></i>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required>
+          <div class="error-message" id="emailError"></div>
+        </div>
+        
+        <div class="input-group">
+          <label for="password">Password</label>
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+          <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+          <div class="forgot-password">
+            <a href="forgot-password.html">Forgot password?</a>
+          </div>
+          <div class="error-message" id="passwordError"></div>
+        </div>
+        
+        <div class="success-message" id="successMessage"></div>
+        
+        <button type="submit" id="btn-submit-log" class="btn-submit">
+          <i class="fas fa-sign-in-alt"></i> Log In
+        </button>
+      </form>
+      
+      <div class="create-account">
+        Don't have an account? <a href="create-account.html">Create one</a>
+      </div>
+    </div>
+  </div>
+
+   <script>
+    // Wait for both DOM and Supabase to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verify supabase is loaded
+      if (typeof supabase === 'undefined') {
+        console.error('Supabase library not loaded');
+        document.getElementById('emailError').textContent = 'System error. Please refresh the page.';
+        document.getElementById('emailError').style.display = 'block';
+        return;
+      }
+
+      const supabaseUrl = 'https://cnmapvrdamsugtdnuesh.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
+      
+      try {
+        // Initialize Supabase client
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Verify client was created
+        if (!supabaseClient) {
+          throw new Error('Failed to create Supabase client');
+        }
+
+        // Rest of your code...
+        const formElements = document.querySelectorAll('.input-group, .btn-submit, .create-account');
+        
+        formElements.forEach((el, index) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(20px)";
+          setTimeout(() => {
+            el.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+          }, 200 + (index * 100));
+        });
+        
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        
+        togglePassword.addEventListener('click', function() {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          this.classList.toggle('fa-eye');
+          this.classList.toggle('fa-eye-slash');
+        });
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          document.querySelectorAll('.error-message').forEach(el => {
+            el.style.display = 'none';
+            el.textContent = '';
+          });
+          document.getElementById('successMessage').style.display = 'none';
+          
+          const email = document.getElementById('email').value.trim();
+          const password = document.getElementById('password').value;
+          
+          let isValid = true;
+          
+          if (!email) {
+            document.getElementById('emailError').textContent = 'Email is required';
+            document.getElementById('emailError').style.display = 'block';
+            isValid = false;
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            document.getElementById('emailError').textContent = 'Please enter a valid email address';
+            document.getElementById('emailError').style.display = 'block';
+            isValid = false;
+          }
+          
+          if (!password) {
+            document.getElementById('passwordError').textContent = 'Password is required';
+            document.getElementById('passwordError').style.display = 'block';
+            isValid = false;
+          } else if (password.length < 6) {
+            document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+            document.getElementById('passwordError').style.display = 'block';
+            isValid = false;
+          }
+          
+          if (!isValid) return;
+          
+          const submitBtn = document.getElementById('btn-submit-log');
+          const originalBtnText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+          submitBtn.disabled = true;
+          
+          try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+              email: email,
+              password: password
+            });
+            
+            if (error) throw error;
+            
+            document.getElementById('successMessage').textContent = 'Login successful! Redirecting...';
+            document.getElementById('successMessage').style.display = 'block';
+            
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            setTimeout(() => {
+              window.location.href = 'meal-plan.html';
+            }, 1500);
+            
+          } catch (error) {
+            console.error('Login error:', error);
+            
+            if (error.message.includes('Invalid login credentials')) {
+              document.getElementById('passwordError').textContent = 'Incorrect email or password';
+              document.getElementById('passwordError').style.display = 'block';
+            } else if (error.message.includes('Email not confirmed')) {
+              document.getElementById('emailError').textContent = 'Please verify your email first';
+              document.getElementById('emailError').style.display = 'block';
+            } else {
+              document.getElementById('emailError').textContent = 'An error occurred during login. Please try again.';
+              document.getElementById('emailError').style.display = 'block';
+            }
+          } finally {
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+          }
+        });
+        
+        document.getElementById('email').focus();
+        
+      } catch (error) {
+        console.error('Supabase initialization error:', error);
+        document.getElementById('emailError').textContent = 'System error. Please try again later.';
+        document.getElementById('emailError').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

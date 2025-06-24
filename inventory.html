@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Smart Inventory – Smart Meal App</title>
+    <meta name="description" content="AI-powered food inventory management">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e74c3c;
+            --primary-light: #ff9a9e;
+            --secondary: #3498db;
+            --dark: #2c3e50;
+            --light: #f8f5f2;
+            --cream: #fdf8f3;
+            --gray: #95a5a6;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .profile-btn:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .btn-add-items {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-items:hover {
+            background: #c0392b;
+        }
+
+        /* Inventory List */
+        .inventory-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .inventory-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .inventory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+
+        .item-image i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .item-category {
+            font-size: 0.8rem;
+            color: var(--gray);
+            background: var(--light);
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .item-details {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .item-expiry {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+
+        .item-expiry.expired {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
+
+        .item-expiry.expiring-soon {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning);
+        }
+
+        .item-expiry.fresh {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            border: none;
+            background: var(--light);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .inventory-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <i class="fas fa-utensils"></i>
+            SmartMeal
+        </div>
+        <div class="nav-links">
+            <a href="meal-plan.html" class="nav-link">Meal Plan</a>
+            <a href="planner.html" class="nav-link">Planner</a>
+            <a href="inventory.html" class="nav-link active">Inventory</a>
+            <a href="grocery.html" class="nav-link">Grocery</a>
+        </div>
+        <div class="profile-btn" id="profile-btn">
+            <i class="fas fa-user"></i>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">My Inventory</h1>
+            <a href="add-items.html" class="btn-add-items">
+                <i class="fas fa-plus"></i> Add Items
+            </a>
+        </div>
+        
+        <!-- Inventory List -->
+        <div class="inventory-list" id="inventory-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading your inventory...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+       const supabaseUrl = 'https://tciqpgkdvnjhqnunbals.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjaXFwZ2tkdm5qaHFudW5iYWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzc2MjEsImV4cCI6MjA2NTg1MzYyMX0.ZCsOZFFX8YjcWPAF3YTzmNzcOYTPlG8ZlB1vI--BHDc';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Global variables
+        let currentUser = null;
+        let inventoryItems = [];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is authenticated
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                loadInventory();
+            } else {
+                // Redirect to login page if not authenticated
+                window.location.href = 'login.html';
+            }
+
+            // Link profile button to user profile page
+            document.getElementById('profile-btn').addEventListener('click', function() {
+                window.location.href = 'profile.html';
+            });
+        });
+
+        // Load inventory from Supabase
+        async function loadInventory() {
+            try {
+                const { data, error } = await supabase
+                    .from('inventory_items')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('expiry_date', { ascending: true });
+                
+                if (error) throw error;
+                
+                inventoryItems = data || [];
+                renderInventory();
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+                document.getElementById('inventory-container').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load inventory. Please try again.</p>
+                        <button onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render inventory items
+        function renderInventory() {
+            const container = document.getElementById('inventory-container');
+            
+            if (!inventoryItems || inventoryItems.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-inventory">
+                        <i class="fas fa-box-open"></i>
+                        <p>Your inventory is empty</p>
+                        <p>Add your first item to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            inventoryItems.forEach(item => {
+                const expiryStatus = getExpiryStatus(item.expiry_date);
+                
+                const card = document.createElement('div');
+                card.className = 'inventory-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="item-image">
+                            <i class="${getCategoryIcon(item.category)}"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-category">${getCategoryName(item.category)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="item-details">
+                        <div><i class="fas fa-weight"></i> ${item.quantity} ${item.unit}</div>
+                    </div>
+                    
+                    <div class="item-expiry ${expiryStatus.class}">${expiryStatus.text}</div>
+                    
+                    <div class="quick-actions">
+                        <button class="action-btn" data-id="${item.id}" data-action="meal">
+                            <i class="fas fa-utensils"></i>
+                            Use in Meal
+                        </button>
+                        <button class="action-btn" data-id="${item.id}" data-action="grocery">
+                            <i class="fas fa-shopping-cart"></i>
+                            To Grocery
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', handleQuickAction);
+            });
+        }
+
+        // Handle quick actions
+        function handleQuickAction(e) {
+            const itemId = e.currentTarget.dataset.id;
+            const action = e.currentTarget.dataset.action;
+            const item = inventoryItems.find(i => i.id === itemId);
+            
+            if (action === 'meal') {
+                // Store selected item in localStorage for meal plan page
+                localStorage.setItem('selectedForMeal', JSON.stringify(item));
+                // Redirect to meal plan page
+                window.location.href = 'meal-plan.html';
+            } else {
+                // Add to grocery list in Supabase
+                addToGrocery(item);
+            }
+        }
+
+        // Add item to grocery list in Supabase
+        async function addToGrocery(item) {
+            try {
+                const { error } = await supabase
+                    .from('grocery_items')
+                    .insert([
+                        {
+                            name: item.name,
+                            category: item.category,
+                            quantity: item.quantity,
+                            unit: item.unit,
+                            user_id: currentUser.id
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                showNotification(`${item.name} added to grocery list!`);
+            } catch (error) {
+                console.error('Error adding to grocery list:', error);
+                showNotification('Failed to add to grocery list', true);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.right = '20px';
+            notification.style.padding = '15px 20px';
+            notification.style.background = isError ? 'var(--danger)' : 'var(--success)';
+            notification.style.color = 'white';
+            notification.style.borderRadius = '8px';
+            notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            notification.style.zIndex = '1000';
+            notification.style.transform = 'translateY(100px)';
+            notification.style.opacity = '0';
+            notification.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            notification.innerHTML = `
+                <i class="fas fa-${isError ? 'exclamation-circle' : 'check-circle'}" style="margin-right: 10px;"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateY(0)';
+                notification.style.opacity = '1';
+            }, 10);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateY(100px)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Helper functions
+        function getExpiryStatus(expiryDate) {
+            if (!expiryDate) return { text: 'No expiry date', class: '' };
+            
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { text: 'Expired', class: 'expired' };
+            if (diffDays === 0) return { text: 'Expires today', class: 'expiring-soon' };
+            if (diffDays === 1) return { text: 'Expires tomorrow', class: 'expiring-soon' };
+            if (diffDays <= 3) return { text: `Expires in ${diffDays} days`, class: 'expiring-soon' };
+            if (diffDays <= 7) return { text: `Expires in ${diffDays} days`, class: '' };
+            return { text: `Expires ${formatDate(expiryDate)}`, class: 'fresh' };
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric'
+            });
+        }
+
+        function getCategoryIcon(category) {
+            switch (category) {
+                case 'fruits': return 'fas fa-apple-alt';
+                case 'dairy': return 'fas fa-cheese';
+                case 'meat': return 'fas fa-drumstick-bite';
+                case 'pantry': return 'fas fa-wine-bottle';
+                case 'beverages': return 'fas fa-coffee';
+                case 'frozen': return 'fas fa-snowflake';
+                default: return 'fas fa-shopping-basket';
+            }
+        }
+
+        function getCategoryName(category) {
+            switch (category) {
+                case 'fruits': return 'Fruits & Vegetables';
+                case 'dairy': return 'Dairy & Eggs';
+                case 'meat': return 'Meat & Seafood';
+                case 'pantry': return 'Pantry Staples';
+                case 'beverages': return 'Beverages';
+                case 'frozen': return 'Frozen Foods';
+                default: return 'Other';
+            }
+        }
+    </script>
+</body>
+</html>
