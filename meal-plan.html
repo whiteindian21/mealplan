@@ -1517,6 +1517,24 @@
     <div class="toast" id="toast"></div>
 
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savory Meal Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Your existing CSS styles here */
+        /* ... */
+    </style>
+</head>
+<body>
+    <!-- Your existing HTML structure here -->
+    <!-- ... -->
+
 <script>
 // Supabase Configuration
 const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
@@ -1526,37 +1544,30 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Global variables
-let currentPlan = null; // To store the current generated plan
-let currentUser = null; // To store the current user
-let isSignUp = false; // Track if we're in signup mode
-let userInventory = []; // Store user's inventory
-let cachedWeeklyPlan = null; // Store the weekly plan when switching views
+let currentPlan = null;
+let currentUser = null;
+let isSignUp = false;
+let userInventory = [];
+let cachedWeeklyPlan = null;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', async function() {
     // Check user session
     const { data: { user }, error } = await supabase.auth.getUser();
     if (user) {
-        // User is logged in
         currentUser = user;
         document.getElementById('streakCount').textContent = '5';
         document.getElementById('authText').textContent = 'Logout';
         document.getElementById('mainContent').style.display = 'block';
         document.getElementById('authForm').style.display = 'none';
-        
-        // Load user inventory
         await loadUserInventory();
     } else {
-        // User is not logged in
         document.getElementById('authForm').style.display = 'block';
         document.getElementById('mainContent').style.display = 'none';
         document.getElementById('authText').textContent = 'Login';
     }
     
-    // Set up event listeners
     setupEventListeners();
-    
-    // Initialize UI components
     initDayCards();
     setupModal();
 });
@@ -1580,72 +1591,10 @@ function setupEventListeners() {
     });
     
     // Authentication button
-    document.getElementById('authSubmitBtn').addEventListener('click', async function() {
-        const email = document.getElementById('authEmail').value;
-        const password = document.getElementById('authPassword').value;
-        
-        if (!email || !password) {
-            showToast('Please enter email and password', 'error');
-            return;
-        }
-        
-        try {
-            if (isSignUp) {
-                const name = document.getElementById('authName').value || '';
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            full_name: name,
-                            streak: 0
-                        }
-                    }
-                });
-                
-                if (error) throw error;
-                showToast('Sign up successful! Please check your email for confirmation.', 'success');
-            } else {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) throw error;
-                currentUser = data.user;
-                document.getElementById('streakCount').textContent = '5';
-                document.getElementById('authText').textContent = 'Logout';
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('authForm').style.display = 'none';
-                
-                // Load user inventory
-                await loadUserInventory();
-                showToast('Login successful!', 'success');
-            }
-        } catch (error) {
-            console.error('Authentication error:', error);
-            showToast(`Authentication failed: ${error.message}`, 'error');
-        }
-    });
+    document.getElementById('authSubmitBtn').addEventListener('click', handleAuth);
     
     // Logout button
-    document.getElementById('userAuthBtn').addEventListener('click', async function(e) {
-        e.preventDefault();
-        
-        if (currentUser) {
-            // Logout
-            await supabase.auth.signOut();
-            currentUser = null;
-            document.getElementById('authText').textContent = 'Login';
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('authForm').style.display = 'block';
-            showToast('Logged out successfully', 'success');
-        } else {
-            // Show login form
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('authForm').style.display = 'block';
-        }
-    });
+    document.getElementById('userAuthBtn').addEventListener('click', handleLogout);
     
     // Hamburger menu toggle
     const hamburgerMenu = document.getElementById('hamburgerMenu');
@@ -1662,39 +1611,7 @@ function setupEventListeners() {
     
     // Plan type toggle
     document.querySelectorAll('.plan-type-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.plan-type-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            const planType = this.dataset.planType;
-            
-            // Show/hide appropriate sections
-            if (planType === 'weekly') {
-                document.getElementById('weeklyPlan').style.display = 'grid';
-                document.getElementById('weeklySummary').style.display = 'grid';
-                document.getElementById('dailyMealCard').style.display = 'none';
-                document.getElementById('moodSelectorContainer').style.display = 'none';
-                
-                // If we have a cached weekly plan, show it
-                if (cachedWeeklyPlan) {
-                    updateDayCards(cachedWeeklyPlan.plan);
-                    updateWeeklySummary(cachedWeeklyPlan.summary);
-                }
-            } else {
-                document.getElementById('weeklyPlan').style.display = 'none';
-                document.getElementById('weeklySummary').style.display = 'none';
-                document.getElementById('dailyMealCard').style.display = 'block';
-                document.getElementById('moodSelectorContainer').style.display = 'block';
-            }
-            
-            // Update submit button text
-            const submitBtn = document.getElementById('btn-submit-create');
-            if (submitBtn) {
-                submitBtn.innerHTML = planType === 'weekly' 
-                    ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
-                    : '<i class="fas fa-magic"></i> Generate Daily Meal';
-            }
-        });
+        btn.addEventListener('click', handlePlanTypeToggle);
     });
     
     // Dietary restrictions toggle
@@ -1730,79 +1647,7 @@ function setupEventListeners() {
     // Form submission
     const mealPlannerForm = document.getElementById('mealPlannerForm');
     if (mealPlannerForm) {
-        mealPlannerForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!currentUser) {
-                showToast('Please log in to generate meal plans', 'error');
-                return;
-            }
-            
-            const submitBtn = document.getElementById('btn-submit-create');
-            const spinner = document.getElementById('loadingSpinner');
-            
-            if (submitBtn) submitBtn.disabled = true;
-            if (spinner) spinner.style.display = 'inline-block';
-            
-            // Show loading overlay
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (loadingOverlay) loadingOverlay.classList.add('active');
-            
-            const planType = document.querySelector('.plan-type-btn.active')?.dataset.planType || 'weekly';
-            const useInventory = document.getElementById('useInventory')?.checked || false;
-            
-            const formData = {
-                planType: planType,
-                budget: document.getElementById('mpBudget')?.value || '150',
-                specificFoods: document.getElementById('mpSpecific')?.value || '',
-                dietaryRestrictions: document.getElementById('mpDietR')?.checked ? 
-                    document.getElementById('mpDietDetails')?.value : '',
-                useInventory: useInventory,
-                inventoryItems: useInventory ? userInventory : [],
-                mood: planType === 'daily' ? 
-                    document.querySelector('.mood-btn.active')?.dataset.mood : ''
-            };
-            
-            try {
-                // Generate meal plan
-                const response = await generateMealPlan(formData);
-                
-                // Store the current plan
-                currentPlan = {
-                    type: planType,
-                    data: response
-                };
-                
-                if (planType === 'weekly') {
-                    // Cache the weekly plan
-                    cachedWeeklyPlan = response;
-                    
-                    // Update weekly plan
-                    updateDayCards(response.plan);
-                    updateWeeklySummary(response.summary);
-                    document.getElementById('weeklyPlan').style.display = 'grid';
-                    document.getElementById('weeklySummary').style.display = 'grid';
-                    document.getElementById('dailyMealCard').style.display = 'none';
-                    showToast('Weekly meal plan generated successfully!', 'success');
-                } else {
-                    // Update daily meal
-                    displayDailyMeal(response);
-                    document.getElementById('weeklyPlan').style.display = 'none';
-                    document.getElementById('weeklySummary').style.display = 'none';
-                    showToast('Daily meal generated successfully!', 'success');
-                }
-                
-                // Show action buttons
-                document.getElementById('actionButtons').style.display = 'flex';
-            } catch (error) {
-                console.error('Error generating meal plan:', error);
-                showToast(`Error: ${error.message}`, 'error');
-            } finally {
-                if (submitBtn) submitBtn.disabled = false;
-                if (spinner) spinner.style.display = 'none';
-                if (loadingOverlay) loadingOverlay.classList.remove('active');
-            }
-        });
+        mealPlannerForm.addEventListener('submit', handleFormSubmit);
     }
     
     // Action buttons
@@ -1839,7 +1684,165 @@ function setupEventListeners() {
     }
 }
 
-// Save meal plan to database with enhanced structure
+async function handleAuth() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    
+    if (!email || !password) {
+        showToast('Please enter email and password', 'error');
+        return;
+    }
+    
+    try {
+        if (isSignUp) {
+            const name = document.getElementById('authName').value || '';
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: name,
+                        streak: 0
+                    }
+                }
+            });
+            
+            if (error) throw error;
+            showToast('Sign up successful! Please check your email for confirmation.', 'success');
+        } else {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            if (error) throw error;
+            currentUser = data.user;
+            document.getElementById('streakCount').textContent = '5';
+            document.getElementById('authText').textContent = 'Logout';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('authForm').style.display = 'none';
+            await loadUserInventory();
+            showToast('Login successful!', 'success');
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
+        showToast(`Authentication failed: ${error.message}`, 'error');
+    }
+}
+
+async function handleLogout(e) {
+    e.preventDefault();
+    
+    if (currentUser) {
+        await supabase.auth.signOut();
+        currentUser = null;
+        document.getElementById('authText').textContent = 'Login';
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('authForm').style.display = 'block';
+        showToast('Logged out successfully', 'success');
+    } else {
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('authForm').style.display = 'block';
+    }
+}
+
+function handlePlanTypeToggle() {
+    document.querySelectorAll('.plan-type-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    const planType = this.dataset.planType;
+    
+    if (planType === 'weekly') {
+        document.getElementById('weeklyPlan').style.display = 'grid';
+        document.getElementById('weeklySummary').style.display = 'grid';
+        document.getElementById('dailyMealCard').style.display = 'none';
+        document.getElementById('moodSelectorContainer').style.display = 'none';
+        
+        if (cachedWeeklyPlan) {
+            updateDayCards(cachedWeeklyPlan.plan);
+            updateWeeklySummary(cachedWeeklyPlan.summary);
+        }
+    } else {
+        document.getElementById('weeklyPlan').style.display = 'none';
+        document.getElementById('weeklySummary').style.display = 'none';
+        document.getElementById('dailyMealCard').style.display = 'block';
+        document.getElementById('moodSelectorContainer').style.display = 'block';
+    }
+    
+    const submitBtn = document.getElementById('btn-submit-create');
+    if (submitBtn) {
+        submitBtn.innerHTML = planType === 'weekly' 
+            ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
+            : '<i class="fas fa-magic"></i> Generate Daily Meal';
+    }
+}
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        showToast('Please log in to generate meal plans', 'error');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('btn-submit-create');
+    const spinner = document.getElementById('loadingSpinner');
+    
+    if (submitBtn) submitBtn.disabled = true;
+    if (spinner) spinner.style.display = 'inline-block';
+    
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.classList.add('active');
+    
+    const planType = document.querySelector('.plan-type-btn.active')?.dataset.planType || 'weekly';
+    const useInventory = document.getElementById('useInventory')?.checked || false;
+    
+    const formData = {
+        planType: planType,
+        budget: document.getElementById('mpBudget')?.value || '150',
+        specificFoods: document.getElementById('mpSpecific')?.value || '',
+        dietaryRestrictions: document.getElementById('mpDietR')?.checked ? 
+            document.getElementById('mpDietDetails')?.value : '',
+        useInventory: useInventory,
+        inventoryItems: useInventory ? userInventory : [],
+        mood: planType === 'daily' ? 
+            document.querySelector('.mood-btn.active')?.dataset.mood : ''
+    };
+    
+    try {
+        const response = await generateMealPlan(formData);
+        
+        currentPlan = {
+            type: planType,
+            data: response
+        };
+        
+        if (planType === 'weekly') {
+            cachedWeeklyPlan = response;
+            updateDayCards(response.plan);
+            updateWeeklySummary(response.summary);
+            document.getElementById('weeklyPlan').style.display = 'grid';
+            document.getElementById('weeklySummary').style.display = 'grid';
+            document.getElementById('dailyMealCard').style.display = 'none';
+            showToast('Weekly meal plan generated successfully!', 'success');
+        } else {
+            displayDailyMeal(response);
+            document.getElementById('weeklyPlan').style.display = 'none';
+            document.getElementById('weeklySummary').style.display = 'none';
+            showToast('Daily meal generated successfully!', 'success');
+        }
+        
+        document.getElementById('actionButtons').style.display = 'flex';
+    } catch (error) {
+        console.error('Error generating meal plan:', error);
+        showToast(`Error: ${error.message}`, 'error');
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
+    }
+}
+
 async function saveMealPlanToDatabase() {
     if (!currentUser || !currentPlan) {
         showToast('No plan to save or user not logged in', 'error');
@@ -1847,11 +1850,9 @@ async function saveMealPlanToDatabase() {
     }
 
     try {
-        // Show loading overlay
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (loadingOverlay) loadingOverlay.classList.add('active');
 
-        // Prepare the plan data with additional metadata
         const planToSave = {
             user_id: currentUser.id,
             plan_type: currentPlan.type,
@@ -1866,32 +1867,18 @@ async function saveMealPlanToDatabase() {
             version: 1
         };
 
-        // First, check if the table exists and has the correct structure
-        // For debugging, let's log the table structure
-        const { data: tableData, error: tableError } = await supabase
-            .from('information_schema.tables')
-            .select('*')
-            .eq('table_name', 'meal_plans');
-
-        if (tableError) {
-            console.error('Error checking table:', tableError);
-            showToast('Database configuration error', 'error');
-            return;
-        }
-
-        if (!tableData || tableData.length === 0) {
-            showToast('Meal plans table does not exist', 'error');
-            return;
-        }
-
-        // Save to database
+        // Try to save to meal_plans table
         const { data, error } = await supabase
             .from('meal_plans')
             .insert([planToSave])
             .select();
 
         if (error) {
-            console.error('Detailed error:', error);
+            if (error.code === '42P01') { // Table doesn't exist
+                showToast('Database tables not set up. Please create the meal_plans table in Supabase.', 'error');
+                console.error('Database tables not set up:', error);
+                return;
+            }
             throw error;
         }
 
@@ -1901,7 +1888,7 @@ async function saveMealPlanToDatabase() {
 
         const insertedPlanId = data[0].id;
 
-        // Also save individual meals to a separate table for better querying
+        // Save individual meals
         if (currentPlan.type === 'weekly') {
             const mealsToInsert = [];
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -1918,7 +1905,7 @@ async function saveMealPlanToDatabase() {
                             description: meal.description,
                             prep_time: meal.prepTime,
                             calories: meal.calories,
-                            cost: meal.cost || '0.00', // Ensure cost has a default value
+                            cost: meal.cost || '0.00',
                             ingredients: JSON.stringify(meal.ingredients || []),
                             instructions: JSON.stringify(meal.steps || []),
                             created_at: new Date().toISOString()
@@ -1932,13 +1919,9 @@ async function saveMealPlanToDatabase() {
                     .from('meals')
                     .insert(mealsToInsert);
                 
-                if (mealsError) {
-                    console.error('Error saving meals:', mealsError);
-                    throw mealsError;
-                }
+                if (mealsError) throw mealsError;
             }
         } else {
-            // Save daily meal
             const { error: mealError } = await supabase
                 .from('meals')
                 .insert([{
@@ -1956,15 +1939,12 @@ async function saveMealPlanToDatabase() {
                     created_at: new Date().toISOString()
                 }]);
             
-            if (mealError) {
-                console.error('Error saving daily meal:', mealError);
-                throw mealError;
-            }
+            if (mealError) throw mealError;
         }
 
         showToast('Meal plan saved successfully!', 'success');
     } catch (error) {
-        console.error('Detailed error saving meal plan:', error);
+        console.error('Error saving meal plan:', error);
         showToast('Failed to save meal plan: ' + error.message, 'error');
     } finally {
         const loadingOverlay = document.getElementById('loadingOverlay');
