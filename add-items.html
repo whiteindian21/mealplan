@@ -380,26 +380,51 @@
     document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Check initial auth state
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            
+            if (authError) {
+                throw authError;
+            }
+            
             currentUser = session?.user ?? null;
+            
+            // Redirect to login if not authenticated
+            if (!currentUser) {
+                redirectToLogin();
+                return;
+            }
 
             // Set up auth state listener
             supabaseClient.auth.onAuthStateChange((event, session) => {
+                console.log('Auth state changed:', event);
                 currentUser = session?.user ?? null;
+                
                 if (event === 'SIGNED_OUT') {
-                    showToast("Please sign in to add items", "error");
+                    showToast("Please sign in to continue", "error");
+                    redirectToLogin();
+                } else if (event === 'SIGNED_IN') {
+                    showToast("Welcome back!", "success");
+                    // Reload the page to initialize with new session
+                    window.location.reload();
                 }
             });
 
-            // Initialize app components
+            // Initialize app components only if authenticated
             setupCameraAndCapture();
             setupManualForm();
 
         } catch (error) {
             console.error('Initialization error:', error);
             showToast("Failed to initialize app. Please refresh.", "error");
+            redirectToLogin();
         }
     });
+
+    function redirectToLogin() {
+        // Store current URL to redirect back after login
+        localStorage.setItem('returnUrl', window.location.pathname);
+        window.location.href = 'login.html';
+    }
 
     // Show toast notification
     function showToast(message, type = "") {
@@ -421,6 +446,12 @@
     async function updateUserInventory(itemData) {
         if (!currentUser) {
             throw new Error("Please sign in first");
+        }
+
+        // Verify the user is still authenticated
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        if (authError || !user) {
+            throw new Error("Session expired. Please sign in again.");
         }
 
         const sanitizedItem = {
@@ -473,14 +504,19 @@
 
     // Analyze image through Supabase Edge Function
     async function analyzeImageWithOpenAI(base64Image) {
-        if (!currentUser) {
-            throw new Error("Please sign in first");
+        // Verify the user is still authenticated
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        if (authError || !user) {
+            throw new Error("Session expired. Please sign in again.");
         }
 
         try {
-            // Call Supabase Edge Function
+            // Call Supabase Edge Function with auth token
             const { data, error } = await supabaseClient.functions.invoke('analyze-image', {
-                body: { image: base64Image }
+                body: { image: base64Image },
+                headers: {
+                    'Authorization': `Bearer ${await getAccessToken()}`
+                }
             });
 
             if (error) throw error;
@@ -493,8 +529,22 @@
         }
     }
 
+    // Get current access token
+    async function getAccessToken() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            throw new Error("No active session");
+        }
+        return session.access_token;
+    }
+
     // Camera setup and capture functionality
     async function setupCameraAndCapture() {
+        if (!currentUser) {
+            showToast("Please sign in to use camera", "error");
+            return;
+        }
+
         const cameraView = document.getElementById("cameraView");
         if (!cameraView) return;
 
@@ -558,10 +608,13 @@
         }
 
         async function handleCapture() {
-            if (!currentUser) {
-                statusDiv.textContent = "Please sign in to add items";
+            // Verify the user is still authenticated
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+            if (authError || !user) {
+                statusDiv.textContent = "Session expired. Please sign in again.";
                 statusDiv.className = "camera-status error";
                 showToast("Please sign in first", "error");
+                redirectToLogin();
                 return;
             }
 
@@ -621,6 +674,14 @@
         manualForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             
+            // Verify the user is still authenticated
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+            if (authError || !user) {
+                showToast("Session expired. Please sign in again.", "error");
+                redirectToLogin();
+                return;
+            }
+            
             const inputField = manualForm.querySelector("#item-name");
             const submitBtn = manualForm.querySelector("button[type='submit']");
             
@@ -633,11 +694,6 @@
             
             if (!itemData.name) {
                 showToast("Please enter an item name", "error");
-                return;
-            }
-            
-            if (!currentUser) {
-                showToast("Please sign in first", "error");
                 return;
             }
 
