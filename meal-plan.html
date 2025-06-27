@@ -1517,26 +1517,101 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
-        
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // Global variables
-        let currentPlan = null; // To store the current generated plan
-        let currentUser = null; // To store the current user
-        let isSignUp = false; // Track if we're in signup mode
-        let userInventory = []; // Store user's inventory
+// Supabase Configuration
+const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Check user session
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (user) {
-                // User is logged in
-                currentUser = user;
+// Initialize Supabase client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Global variables
+let currentPlan = null; // To store the current generated plan
+let currentUser = null; // To store the current user
+let isSignUp = false; // Track if we're in signup mode
+let userInventory = []; // Store user's inventory
+let cachedWeeklyPlan = null; // Store the weekly plan when switching views
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check user session
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (user) {
+        // User is logged in
+        currentUser = user;
+        document.getElementById('streakCount').textContent = '5';
+        document.getElementById('authText').textContent = 'Logout';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('authForm').style.display = 'none';
+        
+        // Load user inventory
+        await loadUserInventory();
+    } else {
+        // User is not logged in
+        document.getElementById('authForm').style.display = 'block';
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('authText').textContent = 'Login';
+    }
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Initialize UI components
+    initDayCards();
+    setupModal();
+});
+
+// Set up all event listeners
+function setupEventListeners() {
+    // Authentication toggle
+    document.getElementById('authToggleLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        isSignUp = !isSignUp;
+        
+        if (isSignUp) {
+            this.textContent = 'Already have an account? Login';
+            document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
+            document.getElementById('authNameGroup').style.display = 'block';
+        } else {
+            this.textContent = 'Don\'t have an account? Sign up';
+            document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            document.getElementById('authNameGroup').style.display = 'none';
+        }
+    });
+    
+    // Authentication button
+    document.getElementById('authSubmitBtn').addEventListener('click', async function() {
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+        
+        if (!email || !password) {
+            showToast('Please enter email and password', 'error');
+            return;
+        }
+        
+        try {
+            if (isSignUp) {
+                const name = document.getElementById('authName').value || '';
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: name,
+                            streak: 0
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                showToast('Sign up successful! Please check your email for confirmation.', 'success');
+            } else {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                currentUser = data.user;
                 document.getElementById('streakCount').textContent = '5';
                 document.getElementById('authText').textContent = 'Logout';
                 document.getElementById('mainContent').style.display = 'block';
@@ -1544,738 +1619,427 @@
                 
                 // Load user inventory
                 await loadUserInventory();
+                showToast('Login successful!', 'success');
+            }
+        } catch (error) {
+            console.error('Authentication error:', error);
+            showToast(`Authentication failed: ${error.message}`, 'error');
+        }
+    });
+    
+    // Logout button
+    document.getElementById('userAuthBtn').addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        if (currentUser) {
+            // Logout
+            await supabase.auth.signOut();
+            currentUser = null;
+            document.getElementById('authText').textContent = 'Login';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('authForm').style.display = 'block';
+            showToast('Logged out successfully', 'success');
+        } else {
+            // Show login form
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('authForm').style.display = 'block';
+        }
+    });
+    
+    // Hamburger menu toggle
+    document.getElementById('hamburgerMenu').addEventListener('click', function() {
+        this.classList.toggle('active');
+        document.querySelector('.nav-links').classList.toggle('active');
+        document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
+    });
+    
+    // Plan type toggle
+    document.querySelectorAll('.plan-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.plan-type-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const planType = this.dataset.planType;
+            
+            // Show/hide appropriate sections
+            if (planType === 'weekly') {
+                document.getElementById('weeklyPlan').style.display = 'grid';
+                document.getElementById('weeklySummary').style.display = 'grid';
+                document.getElementById('dailyMealCard').style.display = 'none';
+                document.getElementById('moodSelectorContainer').style.display = 'none';
+                
+                // If we have a cached weekly plan, show it
+                if (cachedWeeklyPlan) {
+                    updateDayCards(cachedWeeklyPlan.plan);
+                    updateWeeklySummary(cachedWeeklyPlan.summary);
+                }
             } else {
-                // User is not logged in
-                document.getElementById('authForm').style.display = 'block';
-                document.getElementById('mainContent').style.display = 'none';
-                document.getElementById('authText').textContent = 'Login';
+                document.getElementById('weeklyPlan').style.display = 'none';
+                document.getElementById('weeklySummary').style.display = 'none';
+                document.getElementById('dailyMealCard').style.display = 'block';
+                document.getElementById('moodSelectorContainer').style.display = 'block';
             }
             
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Initialize UI components
-            initDayCards();
-            setupModal();
+            // Update submit button text
+            const submitBtn = document.getElementById('btn-submit-create');
+            submitBtn.innerHTML = planType === 'weekly' 
+                ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
+                : '<i class="fas fa-magic"></i> Generate Daily Meal';
         });
-
-        // Set up all event listeners
-        function setupEventListeners() {
-            // Authentication toggle
-            document.getElementById('authToggleLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                isSignUp = !isSignUp;
-                
-                if (isSignUp) {
-                    this.textContent = 'Already have an account? Login';
-                    document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
-                    document.getElementById('authNameGroup').style.display = 'block';
-                } else {
-                    this.textContent = 'Don\'t have an account? Sign up';
-                    document.getElementById('authSubmitBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                    document.getElementById('authNameGroup').style.display = 'none';
-                }
-            });
-            
-            // Authentication button
-            document.getElementById('authSubmitBtn').addEventListener('click', async function() {
-                const email = document.getElementById('authEmail').value;
-                const password = document.getElementById('authPassword').value;
-                
-                if (!email || !password) {
-                    showToast('Please enter email and password', 'error');
-                    return;
-                }
-                
-                try {
-                    if (isSignUp) {
-                        const name = document.getElementById('authName').value || '';
-                        const { data, error } = await supabase.auth.signUp({
-                            email: email,
-                            password: password,
-                            options: {
-                                data: {
-                                    full_name: name,
-                                    streak: 0
-                                }
-                            }
-                        });
-                        
-                        if (error) throw error;
-                        showToast('Sign up successful! Please check your email for confirmation.', 'success');
-                    } else {
-                        const { data, error } = await supabase.auth.signInWithPassword({
-                            email: email,
-                            password: password
-                        });
-                        
-                        if (error) throw error;
-                        currentUser = data.user;
-                        document.getElementById('streakCount').textContent = '5';
-                        document.getElementById('authText').textContent = 'Logout';
-                        document.getElementById('mainContent').style.display = 'block';
-                        document.getElementById('authForm').style.display = 'none';
-                        
-                        // Load user inventory
-                        await loadUserInventory();
-                        showToast('Login successful!', 'success');
-                    }
-                } catch (error) {
-                    console.error('Authentication error:', error);
-                    showToast(`Authentication failed: ${error.message}`, 'error');
-                }
-            });
-            
-            // Logout button
-            document.getElementById('userAuthBtn').addEventListener('click', async function(e) {
-                e.preventDefault();
-                
-                if (currentUser) {
-                    // Logout
-                    await supabase.auth.signOut();
-                    currentUser = null;
-                    document.getElementById('authText').textContent = 'Login';
-                    document.getElementById('mainContent').style.display = 'none';
-                    document.getElementById('authForm').style.display = 'block';
-                    showToast('Logged out successfully', 'success');
-                } else {
-                    // Show login form
-                    document.getElementById('mainContent').style.display = 'none';
-                    document.getElementById('authForm').style.display = 'block';
-                }
-            });
-            
-            // Hamburger menu toggle
-            document.getElementById('hamburgerMenu').addEventListener('click', function() {
-                this.classList.toggle('active');
-                document.querySelector('.nav-links').classList.toggle('active');
-                document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
-            });
-            
-            // Plan type toggle
-            document.querySelectorAll('.plan-type-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.plan-type-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const planType = this.dataset.planType;
-                    
-                    // Show/hide appropriate sections
-                    document.getElementById('weeklyPlan').style.display = planType === 'weekly' ? 'grid' : 'none';
-                    document.getElementById('weeklySummary').style.display = planType === 'weekly' ? 'grid' : 'none';
-                    document.getElementById('dailyMealCard').style.display = planType === 'daily' ? 'block' : 'none';
-                    document.getElementById('moodSelectorContainer').style.display = planType === 'daily' ? 'block' : 'none';
-                    
-                    // Update submit button text
-                    const submitBtn = document.getElementById('btn-submit-create');
-                    submitBtn.innerHTML = planType === 'weekly' 
-                        ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
-                        : '<i class="fas fa-magic"></i> Generate Daily Meal';
-                });
-            });
-            
-            // Dietary restrictions toggle
-            document.getElementById('mpDietR').addEventListener('change', function() {
-                document.getElementById('dietaryDetails').style.display = 
-                    this.checked ? 'block' : 'none';
-            });
-            
-            // Mood selector buttons
-            document.querySelectorAll('.mood-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
-            // Inventory toggle
-            document.getElementById('useInventory').addEventListener('change', function() {
-                document.getElementById('inventoryItems').style.display = 
-                    this.checked ? 'block' : 'none';
-            });
-            
-            // Form submission
-            document.getElementById('mealPlannerForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!currentUser) {
-                    showToast('Please log in to generate meal plans', 'error');
-                    return;
-                }
-                
-                const submitBtn = document.getElementById('btn-submit-create');
-                const spinner = document.getElementById('loadingSpinner');
-                
-                submitBtn.disabled = true;
-                spinner.style.display = 'inline-block';
-                
-                // Show loading overlay
-                document.getElementById('loadingOverlay').classList.add('active');
-                
-                const planType = document.querySelector('.plan-type-btn.active').dataset.planType;
-                const formData = {
-                    planType: planType,
-                    budget: document.getElementById('mpBudget').value,
-                    specificFoods: document.getElementById('mpSpecific').value,
-                    dietaryRestrictions: document.getElementById('mpDietR').checked ? 
-                        document.getElementById('mpDietDetails').value : '',
-                    useInventory: document.getElementById('useInventory').checked,
-                    inventoryItems: userInventory,
-                    mood: planType === 'daily' ? 
-                        document.querySelector('.mood-btn.active').dataset.mood : ''
-                };
-                
-                try {
-                    // Generate meal plan
-                    const response = await generateMealPlan(formData);
-                    
-                    // Store the current plan
-                    currentPlan = {
-                        type: planType,
-                        data: planType === 'weekly' ? {
-                            plan: response.plan,
-                            summary: response.summary
-                        } : response
-                    };
-                    
-                    if (planType === 'weekly') {
-                        // Update weekly plan
-                        updateDayCards(response.plan);
-                        updateWeeklySummary(response.summary);
-                        document.getElementById('weeklyPlan').style.display = 'grid';
-                        document.getElementById('weeklySummary').style.display = 'grid';
-                        document.getElementById('dailyMealCard').style.display = 'none';
-                        showToast('Weekly meal plan generated successfully!', 'success');
-                    } else {
-                        // Update daily meal
-                        displayDailyMeal(response);
-                        document.getElementById('weeklyPlan').style.display = 'none';
-                        document.getElementById('weeklySummary').style.display = 'none';
-                        showToast('Daily meal generated successfully!', 'success');
-                    }
-                    
-                    // Show action buttons
-                    document.getElementById('actionButtons').style.display = 'flex';
-                } catch (error) {
-                    console.error('Error generating meal plan:', error);
-                    showToast(`Error: ${error.message}`, 'error');
-                } finally {
-                    submitBtn.disabled = false;
-                    spinner.style.display = 'none';
-                    document.getElementById('loadingOverlay').classList.remove('active');
-                }
-            });
-            
-            // Action buttons
-            document.getElementById('btn-new-plan').addEventListener('click', function() {
-                document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
-            });
-            
-            document.getElementById('btn-new-daily').addEventListener('click', function() {
-                document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
-            });
-            
-            document.getElementById('btn-add-to-planner').addEventListener('click', saveMealPlanToDatabase);
-            
-            document.getElementById('btn-add-to-calendar').addEventListener('click', function() {
-                showToast('Daily meal added to your calendar!', 'success');
-            });
-        }
-
-        // Load user inventory from Supabase
-        async function loadUserInventory() {
-            if (!currentUser) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('inventory')
-                    .select('*')
-                    .eq('user_id', currentUser.id);
-                
-                if (error) throw error;
-                
-                userInventory = data || [];
-                displayInventoryItems(userInventory);
-            } catch (error) {
-                console.error('Error loading inventory:', error);
-                showToast('Failed to load inventory', 'error');
-            }
+    });
+    
+    // Dietary restrictions toggle
+    document.getElementById('mpDietR').addEventListener('change', function() {
+        document.getElementById('dietaryDetails').style.display = 
+            this.checked ? 'block' : 'none';
+    });
+    
+    // Mood selector buttons
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Inventory toggle
+    document.getElementById('useInventory').addEventListener('change', function() {
+        document.getElementById('inventoryItems').style.display = 
+            this.checked ? 'block' : 'none';
+    });
+    
+    // Form submission
+    document.getElementById('mealPlannerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showToast('Please log in to generate meal plans', 'error');
+            return;
         }
         
-        // Display inventory items
-        function displayInventoryItems(items) {
-            const container = document.getElementById('inventoryItems');
-            container.innerHTML = '';
-            
-            if (items.length === 0) {
-                container.innerHTML = '<div class="inventory-item">No items in inventory</div>';
-                return;
-            }
-            
-            items.forEach(item => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'inventory-item';
-                
-                // Calculate expiry status
-                let expiryClass = '';
-                let expiryText = 'No expiry';
-                if (item.expiry_date) {
-                    const today = new Date();
-                    const expiryDate = new Date(item.expiry_date);
-                    const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-                    
-                    if (diffDays < 0) {
-                        expiryClass = 'expired';
-                        expiryText = 'Expired';
-                    } else if (diffDays <= 3) {
-                        expiryClass = 'expiring-soon';
-                        expiryText = `Expires in ${diffDays} days`;
-                    } else {
-                        expiryClass = 'fresh';
-                        expiryText = `Expires in ${diffDays} days`;
-                    }
-                }
-                
-                itemEl.innerHTML = `
-                    <div>
-                        <span>${item.name} (${item.quantity} ${item.unit})</span>
-                        <span class="item-expiry ${expiryClass}">${expiryText}</span>
-                    </div>
-                `;
-                container.appendChild(itemEl);
-            });
-        }
+        const submitBtn = document.getElementById('btn-submit-create');
+        const spinner = document.getElementById('loadingSpinner');
         
-        // Function to save meal plan to database
-        async function saveMealPlanToDatabase() {
-            if (!currentPlan || !currentUser) {
-                showToast('No meal plan to save or user not logged in', 'error');
-                return;
-            }
-
-            // Show loading overlay
-            document.getElementById('loadingOverlay').classList.add('active');
-
-            try {
-                // Prepare plan data
-                const planData = {
-                    plan_type: currentPlan.type,
-                    plan_data: currentPlan.data,
-                    user_id: currentUser.id,
-                    start_date: new Date().toISOString(),
-                    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-                };
-
-                // Save to database
-                const { error } = await supabase
-                    .from('meal_plans')
-                    .insert(planData);
-
-                if (error) throw error;
-
-                showToast('Meal plan saved successfully!', 'success');
-                
-                // Update streak
-                document.getElementById('streakCount').textContent = 
-                    parseInt(document.getElementById('streakCount').textContent) + 1;
-            } catch (error) {
-                console.error('Error saving meal plan:', error);
-                showToast(`Failed to save: ${error.message}`, 'error');
-            } finally {
-                document.getElementById('loadingOverlay').classList.remove('active');
-            }
-        }
-
-        // Initialize day cards for weekly view
-        function initDayCards() {
-            const weeklyPlan = document.getElementById('weeklyPlan');
-            weeklyPlan.innerHTML = '';
-            
-            const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            
-            daysOfWeek.forEach((day, index) => {
-                const card = document.createElement('div');
-                card.className = 'day-card';
-                if (index === 0) card.classList.add('today');
-                
-                card.dataset.dayName = day;
-                
-                card.innerHTML = `
-                    <div class="day-header">
-                        <div class="day-name">${day}</div>
-                        <div class="date">${getDateString(index)}</div>
-                    </div>
-                    <div class="meal-container">
-                        <div class="empty-state">No meals planned</div>
-                    </div>
-                `;
-                
-                weeklyPlan.appendChild(card);
-            });
-        }
+        submitBtn.disabled = true;
+        spinner.style.display = 'inline-block';
         
-        // Helper function to get date string
-        function getDateString(dayOffset) {
-            const today = new Date();
-            const date = new Date(today);
-            date.setDate(today.getDate() + dayOffset);
-            
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric' 
-            });
-        }
+        // Show loading overlay
+        document.getElementById('loadingOverlay').classList.add('active');
         
-        // Update day cards with meal data
-        function updateDayCards(weeklyPlan) {
-            const dayCards = document.querySelectorAll('.day-card');
-            
-            dayCards.forEach(card => {
-                const dayName = card.dataset.dayName;
-                const mealContainer = card.querySelector('.meal-container');
-                mealContainer.innerHTML = '';
-                
-                if (weeklyPlan[dayName] && weeklyPlan[dayName].length > 0) {
-                    card.dataset.meals = JSON.stringify(weeklyPlan[dayName]);
-                    
-                    weeklyPlan[dayName].forEach(meal => {
-                        const mealElement = document.createElement('div');
-                        mealElement.className = 'meal-item';
-                        
-                        mealElement.innerHTML = `<strong>${meal.type}:</strong> ${meal.name}`;
-                        mealContainer.appendChild(mealElement);
-                    });
-                } else {
-                    mealContainer.innerHTML = '<div class="empty-state">No meals planned</div>';
-                    card.dataset.meals = '[]';
-                }
-            });
-        }
+        const planType = document.querySelector('.plan-type-btn.active').dataset.planType;
+        const useInventory = document.getElementById('useInventory').checked;
         
-        // Update weekly summary
-        function updateWeeklySummary(summaryData) {
-            document.getElementById('costValue').textContent = `$${summaryData.totalCost}`;
-            document.getElementById('caloriesValue').textContent = summaryData.totalCalories;
-            document.getElementById('prepTimeValue').textContent = summaryData.totalPrepTime;
-            document.getElementById('ingredientsValue').textContent = summaryData.uniqueIngredients;
-        }
+        const formData = {
+            planType: planType,
+            budget: document.getElementById('mpBudget').value,
+            specificFoods: document.getElementById('mpSpecific').value,
+            dietaryRestrictions: document.getElementById('mpDietR').checked ? 
+                document.getElementById('mpDietDetails').value : '',
+            useInventory: useInventory,
+            inventoryItems: useInventory ? userInventory : [],
+            mood: planType === 'daily' ? 
+                document.querySelector('.mood-btn.active').dataset.mood : ''
+        };
         
-        // Display daily meal
-        function displayDailyMeal(mealData) {
-            if (!mealData) return;
+        try {
+            // Generate meal plan
+            const response = await generateMealPlan(formData);
             
-            document.getElementById('dailyMealName').textContent = mealData.name || 'Unnamed Meal';
-            document.getElementById('dailyMealType').textContent = mealData.type || 'Meal';
-            document.getElementById('dailyPrepTime').textContent = mealData.prepTime || 'N/A';
-            document.getElementById('dailyCalories').textContent = mealData.calories || 'N/A';
-            document.getElementById('dailyCost').textContent = mealData.cost || 'N/A';
-            document.getElementById('dailyMealDescription').textContent = mealData.description || 'No description available.';
+            // Store the current plan
+            currentPlan = {
+                type: planType,
+                data: response
+            };
             
-            // Show the daily meal card
-            document.getElementById('dailyMealCard').style.display = 'block';
-        }
-        
-        // Set up the meal details modal
-        function setupModal() {
-            const modal = document.getElementById('mealModal');
-            const closeModal = document.querySelector('.close-modal');
-            
-            // Event delegation for day cards
-            document.getElementById('weeklyPlan').addEventListener('click', function(event) {
-                const card = event.target.closest('.day-card');
-                if (!card) return;
+            if (planType === 'weekly') {
+                // Cache the weekly plan
+                cachedWeeklyPlan = response;
                 
-                const meals = JSON.parse(card.dataset.meals || '[]');
-                
-                document.getElementById('modalDayName').textContent = card.dataset.dayName;
-                document.getElementById('modalDate').textContent = getDateString(Array.from(card.parentNode.children).indexOf(card));
-                
-                const container = document.getElementById('modalMealsContainer');
-                container.innerHTML = '';
-                
-                if (meals.length > 0) {
-                    meals.forEach(meal => {
-                        const mealDiv = document.createElement('div');
-                        mealDiv.className = 'modal-meal-item';
-                        
-                        mealDiv.innerHTML = `
-                            <div class="meal-header">
-                                <div class="meal-type">
-                                    <i class="fas fa-utensils"></i> ${meal.type}: ${meal.name}
-                                </div>
-                                <button class="meal-toggle">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="meal-description">${meal.description}</div>
-                            <div class="meal-meta">
-                                <span class="prep-time"><i class="fas fa-clock"></i> Prep: ${meal.prepTime}</span>
-                                <span class="calories"><i class="fas fa-fire"></i> Calories: ${meal.calories}</span>
-                            </div>
-                            <div class="meal-details">
-                                <div class="details-section">
-                                    <h5><i class="fas fa-carrot"></i> Ingredients</h5>
-                                    <ul class="ingredients-list">
-                                        ${meal.ingredients ? meal.ingredients.map(ing => 
-                                            `<li>${ing} <span class="inventory-status ${userInventory.some(item => 
-                                                item.name.toLowerCase().includes(ing.toLowerCase().split(' ')[0])) ? 
-                                                'available' : 'missing'}">${userInventory.some(item => 
-                                                item.name.toLowerCase().includes(ing.toLowerCase().split(' ')[0])) ? 
-                                                'In stock' : 'Missing'}</span></li>`
-                                        ).join('') : '<li>No ingredients listed</li>'}
-                                    </ul>
-                                </div>
-                                <div class="details-section">
-                                    <h5><i class="fas fa-list-ol"></i> Preparation Steps</h5>
-                                    <ol class="steps-list">
-                                        ${meal.steps ? meal.steps.map((step, i) => 
-                                            `<li>${step}</li>`
-                                        ).join('') : '<li>No steps provided</li>'}
-                                    </ol>
-                                </div>
-                                <div class="meal-actions">
-                                    <button class="meal-action-btn primary add-to-grocery-btn">
-                                        <i class="fas fa-cart-plus"></i> Add Missing to Grocery
-                                    </button>
-                                    <button class="meal-action-btn secondary smart-swap-btn">
-                                        <i class="fas fa-sync-alt"></i> Smart Swap
-                                    </button>
-                                    <button class="meal-action-btn secondary">
-                                        <i class="fas fa-share-alt"></i> Share
-                                    </button>
-                                </div>
-                                <div class="meal-rating">
-                                    <span>Rate this meal:</span>
-                                    <div class="stars">
-                                        <i class="fas fa-star rating-star" data-value="1"></i>
-                                        <i class="fas fa-star rating-star" data-value="2"></i>
-                                        <i class="fas fa-star rating-star" data-value="3"></i>
-                                        <i class="fas fa-star rating-star" data-value="4"></i>
-                                        <i class="fas fa-star rating-star" data-value="5"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        container.appendChild(mealDiv);
-                    });
-                } else {
-                    container.innerHTML = '<div class="empty-state">No meals planned for this day</div>';
-                }
-                
-                // Set up toggle buttons
-                document.querySelectorAll('.meal-toggle').forEach(toggle => {
-                    toggle.addEventListener('click', function() {
-                        const details = this.closest('.modal-meal-item').querySelector('.meal-details');
-                        const icon = this.querySelector('i');
-                        
-                        details.classList.toggle('expanded');
-                        
-                        if (details.classList.contains('expanded')) {
-                            icon.classList.remove('fa-chevron-down');
-                            icon.classList.add('fa-chevron-up');
-                        } else {
-                            icon.classList.remove('fa-chevron-up');
-                            icon.classList.add('fa-chevron-down');
-                        }
-                    });
-                });
-                
-                // Set up rating stars
-                document.querySelectorAll('.rating-star').forEach(star => {
-                    star.addEventListener('click', function() {
-                        const value = parseInt(this.dataset.value);
-                        const stars = this.parentElement.querySelectorAll('.rating-star');
-                        
-                        stars.forEach((s, i) => {
-                            if (i < value) {
-                                s.classList.add('active');
-                            } else {
-                                s.classList.remove('active');
-                            }
-                        });
-                        
-                        showToast(`Rated ${value} stars!`, 'success');
-                    });
-                    
-                    // Add hover effect
-                    star.addEventListener('mouseover', function() {
-                        const value = parseInt(this.dataset.value);
-                        const stars = this.parentElement.querySelectorAll('.rating-star');
-                        
-                        stars.forEach((s, i) => {
-                            if (i < value) {
-                                s.classList.add('hover');
-                            } else {
-                                s.classList.remove('hover');
-                            }
-                        });
-                    });
-                    
-                    star.addEventListener('mouseout', function() {
-                        const stars = this.parentElement.querySelectorAll('.rating-star');
-                        stars.forEach(s => s.classList.remove('hover'));
-                    });
-                });
-                
-                // Set up action buttons
-                document.querySelectorAll('.add-to-grocery-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        showToast('Missing ingredients added to grocery list!', 'success');
-                    });
-                });
-                
-                document.querySelectorAll('.smart-swap-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        showToast('Finding alternative meals using your inventory...', 'success');
-                    });
-                });
-                
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-            
-            closeModal.addEventListener('click', function() {
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            });
-            
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            });
-        }
-        
-        // Generate meal plan using OpenAI API via Supabase Edge Function
-        async function generateMealPlan(formData) {
-            try {
-                // In a real application, this would call your Supabase Edge Function
-                // For this demo, we'll generate mock data based on form inputs
-                return generateMockMealPlan(formData);
-            } catch (error) {
-                console.error('Error in generateMealPlan:', error);
-                throw error;
-            }
-        }
-        
-        // Generate mock meal plan based on form data
-        function generateMockMealPlan(formData) {
-            const { planType, budget, specificFoods, dietaryRestrictions, useInventory, inventoryItems, mood } = formData;
-            
-            if (planType === 'daily') {
-                // Generate daily meal
-                const meals = [
-                    {
-                        name: "Mediterranean Chicken Bowl",
-                        type: "Dinner",
-                        prepTime: "30 min",
-                        calories: 520,
-                        cost: "$5.25",
-                        description: "A delicious bowl featuring grilled chicken, quinoa, fresh vegetables, olives, and feta cheese with a tangy lemon-herb dressing.",
-                        ingredients: [
-                            "Chicken breast (200g)",
-                            "Quinoa (1 cup)",
-                            "Cherry tomatoes (100g)",
-                            "Cucumber (1/2)",
-                            "Feta cheese (50g)",
-                            "Kalamata olives (10)",
-                            "Lemon (1)",
-                            "Olive oil (1 tbsp)",
-                            "Fresh herbs"
-                        ],
-                        steps: [
-                            "Cook quinoa according to package instructions and let cool",
-                            "Season chicken breast with salt, pepper, and herbs, then grill until cooked through",
-                            "Chop vegetables and olives",
-                            "Prepare dressing by whisking lemon juice, olive oil, and herbs",
-                            "Assemble bowls with quinoa, sliced chicken, vegetables, and olives",
-                            "Drizzle with dressing and top with crumbled feta cheese"
-                        ]
-                    },
-                    {
-                        name: "Vegetable Stir Fry with Tofu",
-                        type: "Dinner",
-                        prepTime: "25 min",
-                        calories: 450,
-                        cost: "$4.75",
-                        description: "A quick and nutritious stir fry with crispy tofu and seasonal vegetables in a savory sauce.",
-                        ingredients: [
-                            "Firm tofu (200g)",
-                            "Broccoli (1 cup)",
-                            "Bell peppers (2)",
-                            "Carrots (2)",
-                            "Soy sauce (2 tbsp)",
-                            "Ginger (1 tsp)",
-                            "Garlic (2 cloves)",
-                            "Sesame oil (1 tsp)",
-                            "Rice (1 cup)"
-                        ],
-                        steps: [
-                            "Press tofu to remove excess water, then cube and pan-fry until golden",
-                            "Chop vegetables into bite-sized pieces",
-                            "Stir-fry vegetables in sesame oil with ginger and garlic",
-                            "Add tofu and soy sauce, cook for 5 more minutes",
-                            "Serve over cooked rice"
-                        ]
-                    }
-                ];
-                
-                return meals[Math.floor(Math.random() * meals.length)];
+                // Update weekly plan
+                updateDayCards(response.plan);
+                updateWeeklySummary(response.summary);
+                document.getElementById('weeklyPlan').style.display = 'grid';
+                document.getElementById('weeklySummary').style.display = 'grid';
+                document.getElementById('dailyMealCard').style.display = 'none';
+                showToast('Weekly meal plan generated successfully!', 'success');
             } else {
-                // Generate weekly plan
-                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                const mealTypes = ['Breakfast', 'Lunch', 'Dinner'];
-                const mealNames = [
-                    "Oatmeal with Berries", 
-                    "Quinoa Salad", 
-                    "Grilled Salmon", 
-                    "Vegetable Stir Fry", 
-                    "Chicken Wrap", 
-                    "Pasta Primavera", 
-                    "Bean Chili", 
-                    "Greek Yogurt Parfait"
-                ];
-                
-                const plan = {};
-                days.forEach(day => {
-                    plan[day] = mealTypes.map(type => {
-                        const name = mealNames[Math.floor(Math.random() * mealNames.length)];
-                        return {
-                            name: name,
-                            type: type,
-                            prepTime: `${10 + Math.floor(Math.random() * 30)} min`,
-                            calories: 300 + Math.floor(Math.random() * 400),
-                            description: `A delicious ${type.toLowerCase()} featuring ${name.toLowerCase()}`
-                        };
-                    });
-                });
-                
-                const summary = {
-                    totalCost: (budget * 0.8).toFixed(2),
-                    totalCalories: Math.floor(2000 * 7 * 0.9),
-                    totalPrepTime: "6h 45m",
-                    uniqueIngredients: 35
-                };
-                
-                return { plan, summary };
+                // Update daily meal
+                displayDailyMeal(response);
+                document.getElementById('weeklyPlan').style.display = 'none';
+                document.getElementById('weeklySummary').style.display = 'none';
+                showToast('Daily meal generated successfully!', 'success');
+            }
+            
+            // Show action buttons
+            document.getElementById('actionButtons').style.display = 'flex';
+        } catch (error) {
+            console.error('Error generating meal plan:', error);
+            showToast(`Error: ${error.message}`, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            spinner.style.display = 'none';
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+    });
+    
+    // Action buttons
+    document.getElementById('btn-new-plan').addEventListener('click', function() {
+        document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
+    });
+    
+    document.getElementById('btn-new-daily').addEventListener('click', function() {
+        document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
+    });
+    
+    document.getElementById('btn-add-to-planner').addEventListener('click', saveMealPlanToDatabase);
+    
+    document.getElementById('btn-add-to-calendar').addEventListener('click', function() {
+        showToast('Daily meal added to your calendar!', 'success');
+    });
+}
+
+// Load user inventory from Supabase
+async function loadUserInventory() {
+    if (!currentUser) return;
+    
+    try {
+        const { data, error } = await supabase
+            .from('inventory_items')  // Changed from 'inventory' to 'inventory_items'
+            .select('*')
+            .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        userInventory = data || [];
+        displayInventoryItems(userInventory);
+    } catch (error) {
+        console.error('Error loading inventory:', error);
+        showToast('Failed to load inventory', 'error');
+    }
+}
+
+// Display inventory items
+function displayInventoryItems(items) {
+    const container = document.getElementById('inventoryItems');
+    container.innerHTML = '';
+    
+    if (items.length === 0) {
+        container.innerHTML = '<div class="inventory-item">No items in inventory</div>';
+        return;
+    }
+    
+    items.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'inventory-item';
+        
+        // Calculate expiry status
+        let expiryClass = '';
+        let expiryText = 'No expiry';
+        if (item.expiry_date) {
+            const today = new Date();
+            const expiryDate = new Date(item.expiry_date);
+            const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                expiryClass = 'expired';
+                expiryText = 'Expired';
+            } else if (diffDays <= 3) {
+                expiryClass = 'expiring-soon';
+                expiryText = `Expires in ${diffDays} days`;
+            } else {
+                expiryClass = 'fresh';
+                expiryText = `Expires in ${diffDays} days`;
             }
         }
         
-        // Show toast notification
-        function showToast(message, type = '') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = 'toast';
-            
-            if (type) {
-                toast.classList.add(type);
-            }
-            
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+        itemEl.innerHTML = `
+            <div>
+                <span>${item.name} (${item.quantity} ${item.unit})</span>
+                <span class="item-expiry ${expiryClass}">${expiryText}</span>
+            </div>
+        `;
+        container.appendChild(itemEl);
+    });
+}
+
+// Generate meal plan using OpenAI API via Supabase Edge Function
+async function generateMealPlan(formData) {
+    try {
+        // In a real application, this would call your Supabase Edge Function
+        // For this demo, we'll generate mock data based on form inputs
+        return generateMockMealPlan(formData);
+    } catch (error) {
+        console.error('Error in generateMealPlan:', error);
+        throw error;
+    }
+}
+
+// Generate mock meal plan based on form data
+function generateMockMealPlan(formData) {
+    const { planType, budget, specificFoods, dietaryRestrictions, useInventory, inventoryItems, mood } = formData;
+    
+    // If using inventory, incorporate inventory items into the meal plan
+    const inventoryIngredients = useInventory ? 
+        inventoryItems.map(item => item.name.toLowerCase()) : [];
+    
+    if (planType === 'daily') {
+        // Generate daily meal based on inventory if enabled
+        const meals = [];
+        
+        // Meal 1 - Uses inventory if possible
+        meals.push({
+            name: inventoryIngredients.includes('chicken') ? 
+                "Mediterranean Chicken Bowl" : "Vegetable Stir Fry with Tofu",
+            type: "Dinner",
+            prepTime: "30 min",
+            calories: 520,
+            cost: "$5.25",
+            description: inventoryIngredients.includes('chicken') ? 
+                "A delicious bowl featuring grilled chicken, quinoa, fresh vegetables, olives, and feta cheese with a tangy lemon-herb dressing." : 
+                "A quick and nutritious stir fry with crispy tofu and seasonal vegetables in a savory sauce.",
+            ingredients: inventoryIngredients.includes('chicken') ? [
+                "Chicken breast (200g)",
+                "Quinoa (1 cup)",
+                "Cherry tomatoes (100g)",
+                "Cucumber (1/2)",
+                "Feta cheese (50g)",
+                "Kalamata olives (10)",
+                "Lemon (1)",
+                "Olive oil (1 tbsp)",
+                "Fresh herbs"
+            ] : [
+                "Firm tofu (200g)",
+                "Broccoli (1 cup)",
+                "Bell peppers (2)",
+                "Carrots (2)",
+                "Soy sauce (2 tbsp)",
+                "Ginger (1 tsp)",
+                "Garlic (2 cloves)",
+                "Sesame oil (1 tsp)",
+                "Rice (1 cup)"
+            ],
+            steps: inventoryIngredients.includes('chicken') ? [
+                "Cook quinoa according to package instructions and let cool",
+                "Season chicken breast with salt, pepper, and herbs, then grill until cooked through",
+                "Chop vegetables and olives",
+                "Prepare dressing by whisking lemon juice, olive oil, and herbs",
+                "Assemble bowls with quinoa, sliced chicken, vegetables, and olives",
+                "Drizzle with dressing and top with crumbled feta cheese"
+            ] : [
+                "Press tofu to remove excess water, then cube and pan-fry until golden",
+                "Chop vegetables into bite-sized pieces",
+                "Stir-fry vegetables in sesame oil with ginger and garlic",
+                "Add tofu and soy sauce, cook for 5 more minutes",
+                "Serve over cooked rice"
+            ]
+        });
+        
+        // Select meal based on mood if specified
+        let selectedMeal = meals[0];
+        if (mood === 'comfort') {
+            selectedMeal = {
+                name: "Mac and Cheese",
+                type: "Dinner",
+                prepTime: "25 min",
+                calories: 650,
+                cost: "$4.50",
+                description: "Classic comfort food with creamy cheese sauce and elbow macaroni.",
+                ingredients: [
+                    "Elbow macaroni (2 cups)",
+                    "Cheddar cheese (200g)",
+                    "Milk (1 cup)",
+                    "Butter (2 tbsp)",
+                    "Flour (2 tbsp)"
+                ],
+                steps: [
+                    "Cook macaroni according to package directions",
+                    "Melt butter in saucepan, whisk in flour to make a roux",
+                    "Gradually add milk, stirring constantly until thickened",
+                    "Add shredded cheese and stir until melted",
+                    "Combine cheese sauce with cooked macaroni"
+                ]
+            };
+        } else if (mood === 'quick') {
+            selectedMeal = {
+                name: "Avocado Toast with Egg",
+                type: "Breakfast",
+                prepTime: "10 min",
+                calories: 350,
+                cost: "$3.00",
+                description: "Simple and nutritious breakfast with whole grain toast, mashed avocado, and a fried egg.",
+                ingredients: [
+                    "Whole grain bread (2 slices)",
+                    "Avocado (1)",
+                    "Eggs (2)",
+                    "Salt and pepper to taste",
+                    "Red pepper flakes (optional)"
+                ],
+                steps: [
+                    "Toast bread to desired doneness",
+                    "Mash avocado and spread on toast",
+                    "Fry eggs to preferred doneness",
+                    "Place eggs on avocado toast",
+                    "Season with salt, pepper, and red pepper flakes"
+                ]
+            };
         }
-    </script>
+        
+        return selectedMeal;
+    } else {
+        // Generate weekly plan that considers inventory if enabled
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const mealTypes = ['Breakfast', 'Lunch', 'Dinner'];
+        
+        const plan = {};
+        days.forEach(day => {
+            plan[day] = mealTypes.map(type => {
+                // Create meals that use inventory items if available
+                let name, description;
+                
+                if (inventoryIngredients.includes('chicken') && type === 'Dinner') {
+                    name = "Chicken Stir Fry";
+                    description = "A quick dinner using your chicken with fresh vegetables";
+                } else if (inventoryIngredients.includes('eggs') && type === 'Breakfast') {
+                    name = "Vegetable Omelette";
+                    description = "Fluffy omelette with vegetables using your eggs";
+                } else if (inventoryIngredients.includes('pasta') && type === 'Dinner') {
+                    name = "Pasta Primavera";
+                    description = "Pasta dish with seasonal vegetables";
+                } else {
+                    // Fallback to generic meals
+                    const genericMeals = [
+                        {name: "Oatmeal with Berries", desc: "Healthy breakfast with oats and fresh berries"},
+                        {name: "Quinoa Salad", desc: "Nutritious lunch with quinoa and vegetables"},
+                        {name: "Grilled Salmon", desc: "Delicious dinner with fresh salmon"},
+                        {name: "Vegetable Wrap", desc: "Light lunch wrap with fresh veggies"},
+                        {name: "Yogurt Parfait", desc: "Breakfast with yogurt and granola"}
+                    ];
+                    const randomMeal = genericMeals[Math.floor(Math.random() * genericMeals.length)];
+                    name = randomMeal.name;
+                    description = randomMeal.desc;
+                }
+                
+                return {
+                    name: name,
+                    type: type,
+                    prepTime: `${10 + Math.floor(Math.random() * 30)} min`,
+                    calories: 300 + Math.floor(Math.random() * 400),
+                    description: description
+                };
+            });
+        });
+        
+        const summary = {
+            totalCost: (budget * 0.8).toFixed(2),
+            totalCalories: Math.floor(2000 * 7 * 0.9),
+            totalPrepTime: "6h 45m",
+            uniqueIngredients: useInventory ? 
+                Math.min(35, inventoryItems.length + 15) : 35
+        };
+        
+        return { plan, summary };
+    }
+}      
+</script>
 </body>
 </html>
