@@ -1151,13 +1151,13 @@
             mealDate.value = today.toISOString().split('T')[0];
         });
         
-        // Check authentication state
+        // Check authentication state - UPDATED TO FIX DISPLAY ISSUE
         async function checkAuthState() {
-            const { data, error } = await supabase.auth.getSession();
+            const { data: { session }, error } = await supabase.auth.getSession();
             
-            if (data.session) {
+            if (session) {
                 // User is logged in
-                currentUser = data.session.user;
+                currentUser = session.user;
                 showPlanner();
                 updateUserInfo();
                 generateCalendar();
@@ -1168,7 +1168,7 @@
             }
         }
         
-        // Show authentication form
+        // Show authentication form - UPDATED TO FIX DISPLAY ISSUE
         function showAuthForm() {
             authContainer.style.display = 'block';
             plannerContainer.style.display = 'none';
@@ -1178,7 +1178,7 @@
             streakContainer.style.display = 'none';
         }
         
-        // Show planner
+        // Show planner - UPDATED TO FIX DISPLAY ISSUE
         function showPlanner() {
             authContainer.style.display = 'none';
             plannerContainer.style.display = 'block';
@@ -1186,8 +1186,12 @@
             logoutBtn.style.display = 'inline-block';
             userInfo.style.display = 'flex';
             streakContainer.style.display = 'flex';
+            
+            // Generate calendar when showing planner
+            generateCalendar();
+            loadMealPlans();
         }
-        
+
         // Update user info in UI
         function updateUserInfo() {
             if (!currentUser) return;
