@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
     <style>
         :root {
             --primary: #e74c3c;
@@ -428,22 +427,35 @@
             padding: 20px;
         }
         
+        .meal-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .meal-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        
         .meal-details {
             display: flex;
             gap: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         .meal-detail {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             background: rgba(162, 197, 172, 0.1);
             border-radius: 8px;
         }
         
         .detail-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: var(--gray);
             margin-bottom: 5px;
         }
@@ -451,12 +463,20 @@
         .detail-value {
             font-weight: 600;
             color: var(--dark);
+            font-size: 0.9rem;
+        }
+        
+        .meal-title {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--dark);
         }
         
         .meal-description {
-            line-height: 1.6;
-            margin-bottom: 20px;
+            line-height: 1.5;
+            margin-bottom: 15px;
             color: var(--dark);
+            font-size: 0.9rem;
         }
         
         .meal-actions {
@@ -466,7 +486,7 @@
         
         .meal-action {
             flex: 1;
-            padding: 10px;
+            padding: 8px;
             border: none;
             border-radius: 8px;
             font-weight: 500;
@@ -474,8 +494,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 5px;
             transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
         
         .meal-action.edit {
@@ -501,6 +522,8 @@
         .meal-action.add {
             background: rgba(46, 204, 113, 0.1);
             color: var(--success);
+            width: 100%;
+            margin-top: 10px;
         }
         
         .meal-action.add:hover {
@@ -519,6 +542,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             height: 100%;
+            padding: 30px;
         }
         
         .add-meal-card:hover {
@@ -606,6 +630,37 @@
             margin-bottom: 25px;
             text-align: center;
             font-weight: 500;
+        }
+
+        .meal-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .meal-type-btn {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .meal-type-btn.active {
+            border-color: var(--primary);
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
+        
+        .meal-type-btn i {
+            font-size: 1.2rem;
         }
 
         .form-group textarea {
@@ -709,118 +764,31 @@
             background: var(--warning);
         }
 
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .planner-container, .auth-container {
-                padding: 15px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: fixed;
-                top: 90px;
-                left: 0;
-                width: 100%;
-                background: white;
-                flex-direction: column;
-                align-items: center;
-                padding: 20px 0;
-                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-                z-index: 100;
-                gap: 15px;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .hamburger-menu {
-                display: flex;
-            }
-
-            .hamburger-menu.active span:nth-child(1) {
-                transform: translateY(9px) rotate(45deg);
-            }
-
-            .hamburger-menu.active span:nth-child(2) {
-                opacity: 0;
-            }
-
-            .hamburger-menu.active span:nth-child(3) {
-                transform: translateY(-9px) rotate(-45deg);
-            }
-
-            .main-heading {
-                font-size: 2rem;
-            }
-
-            .planner-header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .planner-actions {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .meal-cards {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .planner-btn span {
-                display: none;
-            }
-
-            .planner-btn i {
-                margin-right: 0;
-            }
-            
-            .user-email {
-                display: none;
-            }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+            grid-column: 1 / -1;
         }
         
-        /* Meal type selector */
-        .meal-type-selector {
-            display: flex;
-            gap: 10px;
+        .empty-state i {
+            font-size: 3rem;
             margin-bottom: 15px;
-            flex-wrap: wrap;
+            color: var(--gray);
         }
         
-        .meal-type-btn {
-            padding: 8px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
         }
-        
-        .meal-type-btn.active {
-            border-color: var(--primary);
-            background: rgba(231, 76, 60, 0.1);
-            color: var(--primary);
-        }
-        
-        .meal-type-btn i {
-            font-size: 1.2rem;
-        }
-        
+
         /* Loading indicator */
         .loading-container {
             display: flex;
             justify-content: center;
-            padding: 20px;
+            padding: 40px;
+            grid-column: 1 / -1;
         }
         
         .loading-spinner {
@@ -893,6 +861,106 @@
             border-color: var(--primary);
             background: rgba(231, 76, 60, 0.1);
             color: var(--primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .planner-container, .auth-container {
+                padding: 15px;
+            }
+            
+            .meal-cards {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 90px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+                z-index: 100;
+                gap: 15px;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+
+            .hamburger-menu.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+
+            .hamburger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger-menu.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+
+            .main-heading {
+                font-size: 2rem;
+            }
+
+            .planner-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .planner-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .meal-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .planner-btn span {
+                display: none;
+            }
+
+            .planner-btn i {
+                margin-right: 0;
+            }
+            
+            .user-email {
+                display: none;
+            }
+            
+            .auth-container {
+                padding: 20px;
+            }
+            
+            .auth-tabs {
+                flex-direction: column;
+            }
+            
+            .auth-tab {
+                padding: 12px;
+            }
+            
+            .meal-type-selector {
+                flex-direction: column;
+            }
+            
+            .meal-type-btn {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -1031,7 +1099,7 @@
       <div class="modal-content">
         <button class="close-modal">&times;</button>
         <h2 class="modal-title" id="modalTitle">Add Meal Plan</h2>
-        <div class="modal-date" id="modalDate">May 15, 2023</div>
+        <div class="modal-date" id="modalDate">Loading date...</div>
         
         <div class="meal-type-selector">
             <button type="button" class="meal-type-btn active" data-type="breakfast">
@@ -1140,6 +1208,10 @@
             
             // Set up event listeners
             setupEventListeners();
+            
+            // Set default date for meal form
+            const today = new Date();
+            mealDate.value = today.toISOString().split('T')[0];
         });
         
         // Check authentication state
@@ -1201,9 +1273,11 @@
                 // Calculate start and end of current week
                 const startOfWeek = new Date(currentWeekStart);
                 startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                startOfWeek.setHours(0, 0, 0, 0);
                 
                 const endOfWeek = new Date(startOfWeek);
                 endOfWeek.setDate(endOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
                 
                 // Format dates for Supabase query
                 const startDate = startOfWeek.toISOString().split('T')[0];
@@ -1223,6 +1297,9 @@
                 
                 // Render meal cards
                 renderMealCards(mealPlans);
+                
+                // Update week display
+                updateWeekDisplay(startOfWeek, endOfWeek);
             } catch (error) {
                 console.error('Error loading meal plans:', error);
                 showToast('Failed to load meal plans: ' + error.message, 'error');
@@ -1230,6 +1307,21 @@
                 mealCards.innerHTML = '<div class="empty-state">Failed to load meal plans. Please try again.</div>';
             } finally {
                 hideLoading();
+            }
+        }
+        
+        // Update the week display in the UI
+        function updateWeekDisplay(startDate, endDate) {
+            const options = { month: 'short', day: 'numeric' };
+            const weekDisplay = document.querySelector('.planner-header h2');
+            
+            if (weekDisplay) {
+                weekDisplay.innerHTML = `
+                    <i class="fas fa-calendar"></i> 
+                    Weekly Meal Schedule: 
+                    ${startDate.toLocaleDateString('en-US', options)} - 
+                    ${endDate.toLocaleDateString('en-US', options)}
+                `;
             }
         }
         
@@ -1279,6 +1371,11 @@
                 
                 const dayMeals = mealsByDay[dateString] || [];
                 
+                // Filter meals by current filter if not "all"
+                const filteredMeals = currentFilter === 'all' 
+                    ? dayMeals 
+                    : dayMeals.filter(meal => meal.type === currentFilter);
+                
                 mealCardsHTML += `
                     <div class="meal-card">
                         <div class="meal-header">
@@ -1286,8 +1383,8 @@
                             <div class="meal-type">${formattedDate}</div>
                         </div>
                         <div class="meal-content">
-                            ${dayMeals.length > 0 ? 
-                                dayMeals.map(meal => renderMealItem(meal)).join('') : 
+                            ${filteredMeals.length > 0 ? 
+                                filteredMeals.map(meal => renderMealItem(meal)).join('') : 
                                 '<p class="meal-description">No meals planned for this day</p>'
                             }
                             <button class="meal-action add" data-date="${currentDate.toISOString().split('T')[0]}">
@@ -1344,34 +1441,59 @@
         // Render individual meal item
         function renderMealItem(meal) {
             const mealTime = meal.time ? new Date(`1970-01-01T${meal.time}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            const icon = getMealTypeIcon(meal.type);
             
             return `
-                <div class="meal-details">
-                    <div class="meal-detail">
-                        <div class="detail-label">Type</div>
-                        <div class="detail-value">${meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}</div>
+                <div class="meal-item">
+                    <div class="meal-type-badge" style="background: ${getMealTypeColor(meal.type)}">
+                        ${icon} ${meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}
                     </div>
-                    <div class="meal-detail">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">${mealTime}</div>
+                    <div class="meal-details">
+                        <div class="meal-detail">
+                            <div class="detail-label">Time</div>
+                            <div class="detail-value">${mealTime}</div>
+                        </div>
+                        ${meal.calories ? `
+                        <div class="meal-detail">
+                            <div class="detail-label">Calories</div>
+                            <div class="detail-value">${meal.calories}</div>
+                        </div>
+                        ` : ''}
                     </div>
-                    ${meal.calories ? `
-                    <div class="meal-detail">
-                        <div class="detail-label">Calories</div>
-                        <div class="detail-value">${meal.calories}</div>
+                    <h4 class="meal-title">${meal.title}</h4>
+                    ${meal.description ? `<p class="meal-description">${meal.description}</p>` : ''}
+                    <div class="meal-actions">
+                        <button class="meal-action edit" data-id="${meal.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="meal-action delete" data-id="${meal.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
                     </div>
-                    ` : ''}
-                </div>
-                <p class="meal-description">${meal.title}</p>
-                <div class="meal-actions">
-                    <button class="meal-action edit" data-id="${meal.id}">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="meal-action delete" data-id="${meal.id}">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
                 </div>
             `;
+        }
+        
+        // Get icon for meal type
+        function getMealTypeIcon(type) {
+            const icons = {
+                breakfast: '<i class="fas fa-egg"></i>',
+                lunch: '<i class="fas fa-sandwich"></i>',
+                dinner: '<i class="fas fa-utensils"></i>',
+                snack: '<i class="fas fa-apple-alt"></i>'
+            };
+            return icons[type] || '<i class="fas fa-utensils"></i>';
+        }
+        
+        // Get color for meal type
+        function getMealTypeColor(type) {
+            const colors = {
+                breakfast: 'rgba(255, 193, 7, 0.2)',
+                lunch: 'rgba(33, 150, 243, 0.2)',
+                dinner: 'rgba(156, 39, 176, 0.2)',
+                snack: 'rgba(76, 175, 80, 0.2)'
+            };
+            return colors[type] || 'rgba(158, 158, 158, 0.2)';
         }
         
         // Show add meal modal
@@ -1397,6 +1519,14 @@
             // Set active meal type
             setActiveMealType('breakfast');
             
+            // Update modal date display
+            modalDate.textContent = today.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
             mealModal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1418,6 +1548,15 @@
             // Set active meal type
             setActiveMealType(selectedMealType);
             
+            // Update modal date display
+            const mealDateObj = new Date(meal.date);
+            modalDate.textContent = mealDateObj.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
             mealModal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1433,7 +1572,7 @@
             });
         }
         
-        // Save meal plan
+        // Save meal plan to Supabase
         async function saveMealPlan() {
             if (!currentUser) {
                 showToast('Please sign in to save meal plans', 'error');
@@ -1444,7 +1583,7 @@
             const description = mealDescription.value.trim();
             const date = mealDate.value;
             const time = mealTime.value;
-            const calories = mealCalories.value;
+            const calories = mealCalories.value ? parseInt(mealCalories.value) : null;
             
             if (!title) {
                 showToast('Please enter a meal title', 'error');
@@ -1472,7 +1611,8 @@
                             date: date,
                             time: time,
                             calories: calories,
-                            type: selectedMealType
+                            type: selectedMealType,
+                            updated_at: new Date().toISOString()
                         })
                         .eq('id', selectedMeal.id);
                     
@@ -1481,9 +1621,9 @@
                     showToast('Meal plan updated successfully!', 'success');
                 } else {
                     // Create new meal
-                    const { error } = await supabase
+                    const { data, error } = await supabase
                         .from('meal_plans')
-                        .insert({
+                        .insert([{
                             user_id: currentUser.id,
                             title: title,
                             description: description,
@@ -1491,7 +1631,8 @@
                             time: time,
                             calories: calories,
                             type: selectedMealType
-                        });
+                        }])
+                        .select();
                     
                     if (error) throw error;
                     
@@ -1507,9 +1648,13 @@
             }
         }
         
-        // Delete meal plan
+        // Delete meal plan from Supabase
         async function deleteMealPlan(meal) {
             if (!meal) return;
+            
+            if (!confirm('Are you sure you want to delete this meal plan?')) {
+                return;
+            }
             
             try {
                 const { error } = await supabase
@@ -1523,6 +1668,7 @@
                 
                 // Reload meal plans
                 loadMealPlans();
+                closeMealModal();
             } catch (error) {
                 console.error('Error deleting meal plan:', error);
                 showToast('Failed to delete meal plan: ' + error.message, 'error');
@@ -1619,6 +1765,36 @@
                     form.classList.remove('active');
                 }
             });
+        }
+        
+        // Show loading indicator
+        function showLoading() {
+            const existingLoader = document.querySelector('.loading-container');
+            if (!existingLoader) {
+                mealCards.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div></div>';
+            }
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            const loader = document.querySelector('.loading-container');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast';
+            
+            if (type) {
+                toast.classList.add(type);
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
         
         // Set up event listeners
@@ -1726,51 +1902,10 @@
                     // Set current filter
                     currentFilter = this.dataset.filter;
                     
-                    // Apply filter
-                    applyMealFilter();
+                    // Reload meals with filter applied
+                    loadMealPlans();
                 });
             });
-        }
-        
-        // Apply meal type filter
-        function applyMealFilter() {
-            // This would filter the displayed meals in a real implementation
-            // For this demo, we'll just show a toast
-            if (currentFilter === 'all') {
-                showToast('Showing all meals', 'success');
-            } else {
-                showToast(`Showing ${currentFilter} meals`, 'success');
-            }
-        }
-        
-        // Show toast notification
-        function showToast(message, type = '') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = 'toast';
-            
-            if (type) {
-                toast.classList.add(type);
-            }
-            
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-        
-        // Show loading indicator
-        function showLoading() {
-            const existingLoader = document.querySelector('.loading-container');
-            if (!existingLoader) {
-                mealCards.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div></div>';
-            }
-        }
-        
-        // Hide loading indicator
-        function hideLoading() {
-            const loader = document.querySelector('.loading-container');
-            if (loader) {
-                loader.style.display = 'none';
-            }
         }
     </script>
 </body>
