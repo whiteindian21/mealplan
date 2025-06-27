@@ -1515,8 +1515,7 @@
 
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
-
-    <script>
+<script>
 // Supabase Configuration
 const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
@@ -1647,11 +1646,17 @@ function setupEventListeners() {
     });
     
     // Hamburger menu toggle
-    document.getElementById('hamburgerMenu').addEventListener('click', function() {
-        this.classList.toggle('active');
-        document.querySelector('.nav-links').classList.toggle('active');
-        document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
-    });
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    if (hamburgerMenu) {
+        hamburgerMenu.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) {
+                navLinks.classList.toggle('active');
+                document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
+            }
+        });
+    }
     
     // Plan type toggle
     document.querySelectorAll('.plan-type-btn').forEach(btn => {
@@ -1682,17 +1687,24 @@ function setupEventListeners() {
             
             // Update submit button text
             const submitBtn = document.getElementById('btn-submit-create');
-            submitBtn.innerHTML = planType === 'weekly' 
-                ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
-                : '<i class="fas fa-magic"></i> Generate Daily Meal';
+            if (submitBtn) {
+                submitBtn.innerHTML = planType === 'weekly' 
+                    ? '<i class="fas fa-magic"></i> Generate Meal Plan' 
+                    : '<i class="fas fa-magic"></i> Generate Daily Meal';
+            }
         });
     });
     
     // Dietary restrictions toggle
-    document.getElementById('mpDietR').addEventListener('change', function() {
-        document.getElementById('dietaryDetails').style.display = 
-            this.checked ? 'block' : 'none';
-    });
+    const mpDietR = document.getElementById('mpDietR');
+    if (mpDietR) {
+        mpDietR.addEventListener('change', function() {
+            const dietaryDetails = document.getElementById('dietaryDetails');
+            if (dietaryDetails) {
+                dietaryDetails.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+    }
     
     // Mood selector buttons
     document.querySelectorAll('.mood-btn').forEach(btn => {
@@ -1703,99 +1715,160 @@ function setupEventListeners() {
     });
     
     // Inventory toggle
-    document.getElementById('useInventory').addEventListener('change', function() {
-        document.getElementById('inventoryItems').style.display = 
-            this.checked ? 'block' : 'none';
-    });
+    const useInventory = document.getElementById('useInventory');
+    if (useInventory) {
+        useInventory.addEventListener('change', function() {
+            const inventoryItems = document.getElementById('inventoryItems');
+            if (inventoryItems) {
+                inventoryItems.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+    }
     
     // Form submission
-    document.getElementById('mealPlannerForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        if (!currentUser) {
-            showToast('Please log in to generate meal plans', 'error');
-            return;
-        }
-        
-        const submitBtn = document.getElementById('btn-submit-create');
-        const spinner = document.getElementById('loadingSpinner');
-        
-        submitBtn.disabled = true;
-        spinner.style.display = 'inline-block';
-        
-        // Show loading overlay
-        document.getElementById('loadingOverlay').classList.add('active');
-        
-        const planType = document.querySelector('.plan-type-btn.active').dataset.planType;
-        const useInventory = document.getElementById('useInventory').checked;
-        
-        const formData = {
-            planType: planType,
-            budget: document.getElementById('mpBudget').value,
-            specificFoods: document.getElementById('mpSpecific').value,
-            dietaryRestrictions: document.getElementById('mpDietR').checked ? 
-                document.getElementById('mpDietDetails').value : '',
-            useInventory: useInventory,
-            inventoryItems: useInventory ? userInventory : [],
-            mood: planType === 'daily' ? 
-                document.querySelector('.mood-btn.active').dataset.mood : ''
-        };
-        
-        try {
-            // Generate meal plan
-            const response = await generateMealPlan(formData);
+    const mealPlannerForm = document.getElementById('mealPlannerForm');
+    if (mealPlannerForm) {
+        mealPlannerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Store the current plan
-            currentPlan = {
-                type: planType,
-                data: response
-            };
-            
-            if (planType === 'weekly') {
-                // Cache the weekly plan
-                cachedWeeklyPlan = response;
-                
-                // Update weekly plan
-                updateDayCards(response.plan);
-                updateWeeklySummary(response.summary);
-                document.getElementById('weeklyPlan').style.display = 'grid';
-                document.getElementById('weeklySummary').style.display = 'grid';
-                document.getElementById('dailyMealCard').style.display = 'none';
-                showToast('Weekly meal plan generated successfully!', 'success');
-            } else {
-                // Update daily meal
-                displayDailyMeal(response);
-                document.getElementById('weeklyPlan').style.display = 'none';
-                document.getElementById('weeklySummary').style.display = 'none';
-                showToast('Daily meal generated successfully!', 'success');
+            if (!currentUser) {
+                showToast('Please log in to generate meal plans', 'error');
+                return;
             }
             
-            // Show action buttons
-            document.getElementById('actionButtons').style.display = 'flex';
-        } catch (error) {
-            console.error('Error generating meal plan:', error);
-            showToast(`Error: ${error.message}`, 'error');
-        } finally {
-            submitBtn.disabled = false;
-            spinner.style.display = 'none';
-            document.getElementById('loadingOverlay').classList.remove('active');
-        }
-    });
+            const submitBtn = document.getElementById('btn-submit-create');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            if (submitBtn) submitBtn.disabled = true;
+            if (spinner) spinner.style.display = 'inline-block';
+            
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) loadingOverlay.classList.add('active');
+            
+            const planType = document.querySelector('.plan-type-btn.active')?.dataset.planType || 'weekly';
+            const useInventory = document.getElementById('useInventory')?.checked || false;
+            
+            const formData = {
+                planType: planType,
+                budget: document.getElementById('mpBudget')?.value || '150',
+                specificFoods: document.getElementById('mpSpecific')?.value || '',
+                dietaryRestrictions: document.getElementById('mpDietR')?.checked ? 
+                    document.getElementById('mpDietDetails')?.value : '',
+                useInventory: useInventory,
+                inventoryItems: useInventory ? userInventory : [],
+                mood: planType === 'daily' ? 
+                    document.querySelector('.mood-btn.active')?.dataset.mood : ''
+            };
+            
+            try {
+                // Generate meal plan
+                const response = await generateMealPlan(formData);
+                
+                // Store the current plan
+                currentPlan = {
+                    type: planType,
+                    data: response
+                };
+                
+                if (planType === 'weekly') {
+                    // Cache the weekly plan
+                    cachedWeeklyPlan = response;
+                    
+                    // Update weekly plan
+                    updateDayCards(response.plan);
+                    updateWeeklySummary(response.summary);
+                    document.getElementById('weeklyPlan').style.display = 'grid';
+                    document.getElementById('weeklySummary').style.display = 'grid';
+                    document.getElementById('dailyMealCard').style.display = 'none';
+                    showToast('Weekly meal plan generated successfully!', 'success');
+                } else {
+                    // Update daily meal
+                    displayDailyMeal(response);
+                    document.getElementById('weeklyPlan').style.display = 'none';
+                    document.getElementById('weeklySummary').style.display = 'none';
+                    showToast('Daily meal generated successfully!', 'success');
+                }
+                
+                // Show action buttons
+                document.getElementById('actionButtons').style.display = 'flex';
+            } catch (error) {
+                console.error('Error generating meal plan:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+            }
+        });
+    }
     
     // Action buttons
-    document.getElementById('btn-new-plan').addEventListener('click', function() {
-        document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
-    });
+    const btnNewPlan = document.getElementById('btn-new-plan');
+    if (btnNewPlan) {
+        btnNewPlan.addEventListener('click', function() {
+            const mealPlannerForm = document.getElementById('mealPlannerForm');
+            if (mealPlannerForm) {
+                mealPlannerForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    }
     
-    document.getElementById('btn-new-daily').addEventListener('click', function() {
-        document.getElementById('mealPlannerForm').dispatchEvent(new Event('submit'));
-    });
+    const btnNewDaily = document.getElementById('btn-new-daily');
+    if (btnNewDaily) {
+        btnNewDaily.addEventListener('click', function() {
+            const mealPlannerForm = document.getElementById('mealPlannerForm');
+            if (mealPlannerForm) {
+                mealPlannerForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    }
     
-    document.getElementById('btn-add-to-planner').addEventListener('click', saveMealPlanToDatabase);
+    const btnAddToPlanner = document.getElementById('btn-add-to-planner');
+    if (btnAddToPlanner) {
+        btnAddToPlanner.addEventListener('click', saveMealPlanToDatabase);
+    }
     
-    document.getElementById('btn-add-to-calendar').addEventListener('click', function() {
-        showToast('Daily meal added to your calendar!', 'success');
-    });
+    const btnAddToCalendar = document.getElementById('btn-add-to-calendar');
+    if (btnAddToCalendar) {
+        btnAddToCalendar.addEventListener('click', function() {
+            showToast('Daily meal added to your calendar!', 'success');
+        });
+    }
+}
+
+// Save meal plan to database
+async function saveMealPlanToDatabase() {
+    if (!currentUser || !currentPlan) {
+        showToast('No plan to save or user not logged in', 'error');
+        return;
+    }
+
+    try {
+        // Show loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.add('active');
+
+        // Save to database
+        const { data, error } = await supabase
+            .from('meal_plans')
+            .insert([{
+                user_id: currentUser.id,
+                plan_type: currentPlan.type,
+                plan_data: currentPlan.data,
+                created_at: new Date().toISOString()
+            }]);
+
+        if (error) throw error;
+
+        showToast('Meal plan saved successfully!', 'success');
+    } catch (error) {
+        console.error('Error saving meal plan:', error);
+        showToast('Failed to save meal plan', 'error');
+    } finally {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
+    }
 }
 
 // Load user inventory from Supabase
@@ -1804,7 +1877,7 @@ async function loadUserInventory() {
     
     try {
         const { data, error } = await supabase
-            .from('inventory_items')  // Changed from 'inventory' to 'inventory_items'
+            .from('inventory_items')
             .select('*')
             .eq('user_id', currentUser.id);
         
@@ -1821,6 +1894,8 @@ async function loadUserInventory() {
 // Display inventory items
 function displayInventoryItems(items) {
     const container = document.getElementById('inventoryItems');
+    if (!container) return;
+    
     container.innerHTML = '';
     
     if (items.length === 0) {
@@ -2039,7 +2114,125 @@ function generateMockMealPlan(formData) {
         
         return { plan, summary };
     }
-}      
+}
+
+// Initialize day cards
+function initDayCards() {
+    const weeklyPlanEl = document.getElementById('weeklyPlan');
+    if (!weeklyPlanEl) return;
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    weeklyPlanEl.innerHTML = days.map(day => `
+        <div class="day-card ${day === new Date().toLocaleDateString('en-US', { weekday: 'long' }) ? 'today' : ''}">
+            <div class="day-header">
+                <h3 class="day-name">${day}</h3>
+                <div class="date">${new Date().toLocaleDateString()}</div>
+            </div>
+            <div class="meal-container" id="${day.toLowerCase()}-meals">
+                <div class="empty-state">
+                    <i class="fas fa-utensils"></i>
+                    <p>No meals planned yet</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Update day cards with meal plan data
+function updateDayCards(planData) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    days.forEach(day => {
+        const dayMealsContainer = document.getElementById(`${day.toLowerCase()}-meals`);
+        if (!dayMealsContainer) return;
+        
+        const meals = planData[day];
+        if (!meals || meals.length === 0) {
+            dayMealsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-utensils"></i>
+                    <p>No meals planned for ${day}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        dayMealsContainer.innerHTML = meals.map(meal => `
+            <div class="meal-item">
+                <h4>${meal.name}</h4>
+                <p><small>${meal.type} • ${meal.prepTime} • ${meal.calories} cal</small></p>
+                <p>${meal.description}</p>
+            </div>
+        `).join('');
+    });
+}
+
+// Update weekly summary
+function updateWeeklySummary(summaryData) {
+    if (!summaryData) return;
+    
+    const costValue = document.getElementById('costValue');
+    const caloriesValue = document.getElementById('caloriesValue');
+    const prepTimeValue = document.getElementById('prepTimeValue');
+    const ingredientsValue = document.getElementById('ingredientsValue');
+    
+    if (costValue) costValue.textContent = `$${summaryData.totalCost}`;
+    if (caloriesValue) caloriesValue.textContent = summaryData.totalCalories;
+    if (prepTimeValue) prepTimeValue.textContent = summaryData.totalPrepTime;
+    if (ingredientsValue) ingredientsValue.textContent = summaryData.uniqueIngredients;
+}
+
+// Display daily meal
+function displayDailyMeal(mealData) {
+    const dailyMealName = document.getElementById('dailyMealName');
+    const dailyMealType = document.getElementById('dailyMealType');
+    const dailyPrepTime = document.getElementById('dailyPrepTime');
+    const dailyCalories = document.getElementById('dailyCalories');
+    const dailyCost = document.getElementById('dailyCost');
+    const dailyMealDescription = document.getElementById('dailyMealDescription');
+    
+    if (dailyMealName) dailyMealName.textContent = mealData.name;
+    if (dailyMealType) dailyMealType.textContent = mealData.type;
+    if (dailyPrepTime) dailyPrepTime.textContent = mealData.prepTime;
+    if (dailyCalories) dailyCalories.textContent = mealData.calories;
+    if (dailyCost) dailyCost.textContent = mealData.cost;
+    if (dailyMealDescription) dailyMealDescription.textContent = mealData.description;
+}
+
+// Setup modal
+function setupModal() {
+    const modal = document.getElementById('mealModal');
+    if (!modal) return;
+    
+    const closeModal = modal.querySelector('.close-modal');
+    if (closeModal) {
+        closeModal.addEventListener('click', function() {
+            modal.classList.remove('active');
+        });
+    }
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+}
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
 </script>
-</body>
+   </body>
 </html>
