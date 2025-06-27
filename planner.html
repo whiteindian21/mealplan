@@ -8,7 +8,379 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* [Previous CSS remains exactly the same] */
+        :root {
+            --primary: #e74c3c;
+            --primary-light: #ff9a9e;
+            --secondary: #3498db;
+            --dark: #2c3e50;
+            --light: #f8f5f0;
+            --cream: #f8f5f0;
+            --coral: #ff7e6b;
+            --apricot: #ffbe86;
+            --sage: #a2c5ac;
+            --gray: #95a5a6;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark-blue: #1a2b4d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #e4e0d8 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Floating decorative elements */
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.2;
+        }
+        .floating-element:nth-child(1) {
+            width: 120px;
+            height: 120px;
+            background: var(--coral);
+            top: 10%;
+            left: 5%;
+            animation: float 15s infinite ease-in-out;
+        }
+        .floating-element:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            background: var(--sage);
+            top: 25%;
+            right: 8%;
+            animation: float 12s infinite ease-in-out;
+            animation-delay: -3s;
+        }
+        .floating-element:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            background: var(--apricot);
+            bottom: 15%;
+            left: 10%;
+            animation: float 18s infinite ease-in-out;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-20px) translateX(10px); }
+            50% { transform: translateY(10px) translateX(-15px); }
+            75% { transform: translateY(-15px) translateX(-10px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .hamburger-menu {
+            display: none;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            z-index: 1000;
+        }
+
+        .hamburger-menu span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background: var(--dark);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* User section with streak and badges */
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .streak-container {
+            display: flex;
+            align-items: center;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .streak-container i {
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Main Content */
+        .main-heading {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: var(--dark);
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-heading::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border-radius: 2px;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            max-width: 500px;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .auth-header h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 5px 15px rgba(255, 154, 158, 0.2);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, var(--coral), var(--apricot));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Planner Container */
+        .planner-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .planner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .planner-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .planner-btn {
+            background: var(--sage);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .planner-btn:hover {
+            background: var(--apricot);
+            transform: translateY(-2px);
+        }
+
         /* Calendar-specific styles */
         .calendar {
             display: grid;
@@ -33,6 +405,11 @@
             min-height: 150px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             position: relative;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            box-shadow: none;
         }
         
         .calendar-day-header {
@@ -99,62 +476,618 @@
             background: var(--apricot);
             transform: scale(1.1);
         }
+
+        /* Filter buttons */
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
         
-        /* [Rest of your existing CSS remains the same] */
+        .filter-btn {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            border-color: var(--primary);
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
+
+        /* Meal Details Modal */
+        .meal-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .meal-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .meal-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .modal-date {
+            color: var(--primary);
+            font-size: 1rem;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .meal-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .meal-type-btn {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .meal-type-btn.active {
+            border-color: var(--primary);
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
+        
+        .meal-type-btn i {
+            font-size: 1.2rem;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            min-height: 100px;
+            resize: vertical;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-group textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 5px 15px rgba(255, 154, 158, 0.2);
+        }
+
+        .meal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--coral), var(--apricot));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--sage);
+            color: var(--dark);
+        }
+
+        .btn-outline:hover {
+            background: var(--sage);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .toast i {
+            margin-right: 10px;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--gray);
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        /* Loading indicator */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            grid-column: 1 / -1;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Demo message */
+        .demo-message {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .demo-credentials {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .demo-credentials h3 {
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .demo-credentials p {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .demo-credentials i {
+            color: var(--secondary);
+            min-width: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .planner-container, .auth-container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 90px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+                z-index: 100;
+                gap: 15px;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+
+            .hamburger-menu.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+
+            .hamburger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger-menu.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+
+            .main-heading {
+                font-size: 2rem;
+            }
+
+            .planner-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .planner-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .calendar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .calendar-header {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .planner-btn span {
+                display: none;
+            }
+
+            .planner-btn i {
+                margin-right: 0;
+            }
+            
+            .user-email {
+                display: none;
+            }
+            
+            .auth-container {
+                padding: 20px;
+            }
+            
+            .auth-tabs {
+                flex-direction: column;
+            }
+            
+            .auth-tab {
+                padding: 12px;
+            }
+            
+            .meal-type-selector {
+                flex-direction: column;
+            }
+            
+            .meal-type-btn {
+                justify-content: center;
+            }
+            
+            .calendar {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-header {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- [Previous HTML structure remains the same until the plannerContainer] -->
-    
-    <!-- Planner Container (shown when logged in) -->
-    <div class="planner-container" id="plannerContainer">
-        <h1 class="main-heading">Your Meal Plans</h1>
-        
-        <div class="planner-header">
-            <h2><i class="fas fa-calendar"></i> <span id="currentMonthYear">June 2025</span></h2>
-            <div class="planner-actions">
-                <button class="planner-btn" id="prevMonthBtn">
-                    <i class="fas fa-chevron-left"></i>
-                    <span>Previous Month</span>
-                </button>
-                <button class="planner-btn" id="todayBtn">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>This Month</span>
-                </button>
-                <button class="planner-btn" id="nextMonthBtn">
-                    <span>Next Month</span>
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+    <!-- Floating decorative elements -->
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                SmartMeal
+            </div>
+            <div class="nav-links">
+                <a href="#" class="active"><i class="fas fa-calendar-alt"></i> Planner</a>
+                <a href="#"><i class="fas fa-box-open"></i> Inventory</a>
+                <a href="#"><i class="fas fa-shopping-basket"></i> Grocery</a>
+                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                <div class="user-section">
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <span class="user-email" id="userEmail"></span>
+                    </div>
+                    <div class="streak-container" id="streakContainer">
+                        <i class="fas fa-fire"></i> <span id="streakCount">0</span> Day Streak
+                    </div>
+                    <a href="#" id="logoutBtn" style="display: none;"><i class="fas fa-sign-out-alt"></i></a>
+                    <a href="#" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                </div>
+            </div>
+            <div class="hamburger-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+
+        <!-- Auth Container (shown when not logged in) -->
+        <div class="auth-container" id="authContainer">
+            <div class="auth-header">
+                <h2>Welcome to SmartMeal Planner</h2>
+                <p>Please sign in to access your meal plans</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Login</div>
+                <div class="auth-tab" data-tab="signup">Sign Up</div>
+            </div>
+            
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+            
+            <form class="auth-form" id="signupForm">
+                <div class="form-group">
+                    <label for="signupEmail"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signupPassword"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signupName"><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" id="signupName" placeholder="Enter your full name" required>
+                </div>
+                
+                <button type="submit" class="auth-btn">Create Account</button>
+            </form>
+            
+            <div class="demo-message">
+                <h3>Try the Demo Account</h3>
+                <div class="demo-credentials">
+                    <p><i class="fas fa-envelope"></i> Email: demo@smartmeal.com</p>
+                    <p><i class="fas fa-lock"></i> Password: demo1234</p>
+                </div>
             </div>
         </div>
-        
-        <div class="filter-container">
-            <button class="filter-btn active" data-filter="all">All Meals</button>
-            <button class="filter-btn" data-filter="breakfast">Breakfast</button>
-            <button class="filter-btn" data-filter="lunch">Lunch</button>
-            <button class="filter-btn" data-filter="dinner">Dinner</button>
-            <button class="filter-btn" data-filter="snack">Snacks</button>
-        </div>
-        
-        <div class="calendar-header">
-            <div>Sunday</div>
-            <div>Monday</div>
-            <div>Tuesday</div>
-            <div>Wednesday</div>
-            <div>Thursday</div>
-            <div>Friday</div>
-            <div>Saturday</div>
-        </div>
-        
-        <div class="calendar" id="calendar">
-            <!-- Calendar days will be generated here -->
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
+
+        <!-- Planner Container (shown when logged in) -->
+        <div class="planner-container" id="plannerContainer">
+            <h1 class="main-heading">Your Meal Plans</h1>
+            
+            <div class="planner-header">
+                <h2><i class="fas fa-calendar"></i> <span id="currentMonthYear">June 2025</span></h2>
+                <div class="planner-actions">
+                    <button class="planner-btn" id="prevMonthBtn">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>Previous Month</span>
+                    </button>
+                    <button class="planner-btn" id="todayBtn">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>This Month</span>
+                    </button>
+                    <button class="planner-btn" id="nextMonthBtn">
+                        <span>Next Month</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filter-container">
+                <button class="filter-btn active" data-filter="all">All Meals</button>
+                <button class="filter-btn" data-filter="breakfast">Breakfast</button>
+                <button class="filter-btn" data-filter="lunch">Lunch</button>
+                <button class="filter-btn" data-filter="dinner">Dinner</button>
+                <button class="filter-btn" data-filter="snack">Snacks</button>
+            </div>
+            
+            <div class="calendar-header">
+                <div>Sunday</div>
+                <div>Monday</div>
+                <div>Tuesday</div>
+                <div>Wednesday</div>
+                <div>Thursday</div>
+                <div>Friday</div>
+                <div>Saturday</div>
+            </div>
+            
+            <div class="calendar" id="calendar">
+                <!-- Calendar days will be generated here -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- [Rest of your HTML remains the same] -->
+    <!-- Meal Details Modal -->
+    <div class="meal-modal" id="mealModal">
+      <div class="modal-content">
+        <button class="close-modal">&times;</button>
+        <h2 class="modal-title" id="modalTitle">Add Meal Plan</h2>
+        <div class="modal-date" id="modalDate">Loading date...</div>
+        
+        <div class="meal-type-selector">
+            <button type="button" class="meal-type-btn active" data-type="breakfast">
+                <i class="fas fa-egg"></i> Breakfast
+            </button>
+            <button type="button" class="meal-type-btn" data-type="lunch">
+                <i class="fas fa-sandwich"></i> Lunch
+            </button>
+            <button type="button" class="meal-type-btn" data-type="dinner">
+                <i class="fas fa-utensils"></i> Dinner
+            </button>
+            <button type="button" class="meal-type-btn" data-type="snack">
+                <i class="fas fa-apple-alt"></i> Snack
+            </button>
+        </div>
+        
+        <form id="mealForm">
+            <div class="form-group">
+                <label for="mealTitle"><i class="fas fa-utensils"></i> Meal Title</label>
+                <input type="text" id="mealTitle" name="mealTitle" placeholder="e.g., Healthy Breakfast" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="mealDescription"><i class="fas fa-file-alt"></i> Description</label>
+                <textarea id="mealDescription" name="mealDescription" placeholder="Describe your meal..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="mealDate"><i class="fas fa-calendar"></i> Date</label>
+                <input type="date" id="mealDate" name="mealDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="mealTime"><i class="fas fa-clock"></i> Time</label>
+                <input type="time" id="mealTime" name="mealTime" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="mealCalories"><i class="fas fa-fire"></i> Estimated Calories</label>
+                <input type="number" id="mealCalories" name="mealCalories" placeholder="e.g., 450" min="0">
+            </div>
+            
+            <div class="meal-actions">
+                <button type="button" class="btn-outline" id="cancelBtn">Cancel</button>
+                <button type="button" class="btn-danger" id="deleteBtn" style="display:none;">Delete</button>
+                <button type="submit" class="btn-primary" id="saveBtn">Save Meal</button>
+            </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
 
     <script>
         // Supabase Configuration
@@ -458,10 +1391,83 @@
             return colors[type] || 'rgba(158, 158, 158, 0.2)';
         }
         
-        // [Rest of your functions (showAddMealModal, showEditMealModal, saveMealPlan, etc.) remain the same]
-        // [Only need to update the functions that interact with the database to match your schema]
+        // Show add meal modal
+        function showAddMealModal(date = null) {
+            modalTitle.textContent = 'Add Meal Plan';
+            selectedMeal = null;
+            
+            // Set default date to today or provided date
+            const today = date ? new Date(date) : new Date();
+            mealDate.value = today.toISOString().split('T')[0];
+            
+            // Set default time to current time
+            const now = new Date();
+            mealTime.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Reset other fields
+            mealTitle.value = '';
+            mealDescription.value = '';
+            mealCalories.value = '';
+            selectedMealType = 'breakfast';
+            deleteBtn.style.display = 'none';
+            
+            // Set active meal type
+            setActiveMealType('breakfast');
+            
+            // Update modal date display
+            modalDate.textContent = today.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
+            mealModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
         
-        // Save meal plan to Supabase (updated for your schema)
+        // Show edit meal modal
+        function showEditMealModal(meal) {
+            modalTitle.textContent = 'Edit Meal Plan';
+            selectedMeal = meal;
+            
+            // Fill form with meal data
+            mealTitle.value = meal.title;
+            mealDescription.value = meal.description || '';
+            mealDate.value = meal.date;
+            mealTime.value = '12:00'; // Default time since your data doesn't show time
+            mealCalories.value = '';
+            selectedMealType = meal.type || 'breakfast';
+            deleteBtn.style.display = 'inline-block';
+            
+            // Set active meal type
+            setActiveMealType(selectedMealType);
+            
+            // Update modal date display
+            const mealDateObj = new Date(meal.date);
+            modalDate.textContent = mealDateObj.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
+            mealModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Set active meal type
+        function setActiveMealType(type) {
+            mealTypeButtons.forEach(btn => {
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Save meal plan to Supabase
         async function saveMealPlan() {
             if (!currentUser) {
                 showToast('Please sign in to save meal plans', 'error');
@@ -547,9 +1553,172 @@
             }
         }
         
-        // Set up event listeners (updated for calendar navigation)
+        // Delete meal plan from Supabase
+        async function deleteMealPlan(meal) {
+            if (!meal) return;
+            
+            if (!confirm('Are you sure you want to delete this meal plan?')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('meal_plans')
+                    .delete()
+                    .eq('id', meal.id);
+                
+                if (error) throw error;
+                
+                showToast('Meal plan deleted successfully!', 'success');
+                
+                // Reload meal plans
+                loadMealPlans();
+                closeMealModal();
+            } catch (error) {
+                console.error('Error deleting meal plan:', error);
+                showToast('Failed to delete meal plan: ' + error.message, 'error');
+            }
+        }
+        
+        // Close meal modal
+        function closeMealModal() {
+            mealModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            selectedMeal = null;
+        }
+        
+        // User login
+        async function login(email, password) {
+            try {
+                showLoading();
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                currentUser = data.user;
+                showToast('Login successful!', 'success');
+                showPlanner();
+                updateUserInfo();
+                generateCalendar();
+                loadMealPlans();
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Login failed: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // User signup
+        async function signup(email, password, name) {
+            try {
+                showLoading();
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: name
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                showToast('Account created! Please check your email to confirm.', 'success');
+                // Switch to login form
+                switchAuthTab('login');
+            } catch (error) {
+                console.error('Signup error:', error);
+                showToast('Signup failed: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // User logout
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                
+                currentUser = null;
+                showToast('You have been logged out', 'success');
+                showAuthForm();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Logout failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Switch between login/signup tabs
+        function switchAuthTab(tab) {
+            authTabs.forEach(t => {
+                if (t.dataset.tab === tab) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+            
+            document.querySelectorAll('.auth-form').forEach(form => {
+                if (form.id === tab + 'Form') {
+                    form.classList.add('active');
+                } else {
+                    form.classList.remove('active');
+                }
+            });
+        }
+        
+        // Show loading indicator
+        function showLoading() {
+            const existingLoader = document.querySelector('.loading-container');
+            if (!existingLoader) {
+                calendar.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div></div>';
+            }
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            const loader = document.querySelector('.loading-container');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast';
+            
+            if (type) {
+                toast.classList.add(type);
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Set up event listeners
         function setupEventListeners() {
-            // [Previous event listeners remain the same]
+            // Form submission
+            mealForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveMealPlan();
+            });
+            
+            // Buttons
+            saveBtn.addEventListener('click', saveMealPlan);
+            deleteBtn.addEventListener('click', function() {
+                if (selectedMeal) {
+                    deleteMealPlan(selectedMeal);
+                }
+            });
+            cancelBtn.addEventListener('click', closeMealModal);
             
             // Month navigation
             prevMonthBtn.addEventListener('click', function() {
@@ -582,7 +1751,82 @@
                 loadMealPlans();
             });
             
-            // [Rest of your event listeners remain the same]
+            // Auth forms
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                login(email, password);
+            });
+            
+            signupForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('signupEmail').value;
+                const password = document.getElementById('signupPassword').value;
+                const name = document.getElementById('signupName').value;
+                signup(email, password, name);
+            });
+            
+            // Auth tabs
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchAuthTab(this.dataset.tab);
+                });
+            });
+            
+            // Logout button
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+            
+            // Login button in nav
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                showAuthForm();
+            });
+            
+            // Close modal when clicking outside
+            mealModal.addEventListener('click', function(e) {
+                if (e.target === mealModal) {
+                    closeMealModal();
+                }
+            });
+            
+            // Close modal with close button
+            document.querySelector('.close-modal').addEventListener('click', closeMealModal);
+            
+            // Hamburger menu toggle
+            document.querySelector('.hamburger-menu').addEventListener('click', function() {
+                this.classList.toggle('active');
+                document.querySelector('.nav-links').classList.toggle('active');
+                document.body.style.overflow = this.classList.contains('active') ? 'hidden' : 'auto';
+            });
+            
+            // Meal type selector
+            mealTypeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    selectedMealType = this.dataset.type;
+                    setActiveMealType(selectedMealType);
+                });
+            });
+            
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Set current filter
+                    currentFilter = this.dataset.filter;
+                    
+                    // Reload meals with filter applied
+                    loadMealPlans();
+                });
+            });
         }
     </script>
 </body>
