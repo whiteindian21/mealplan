@@ -81,11 +81,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script>
-    // Initialize Supabase client
-    const supabaseUrl = 'https://tciqpgkdvnjhqnunbals.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjaXFwZ2tkdm5qaHFudW5iYWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzc2MjEsImV4cCI6MjA2NTg1MzYyMX0.ZCsOZFFX8YjcWPAF3YTzmNzcOYTPlG8ZlB1vI--BHDc';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     let currentUser = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
