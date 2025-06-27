@@ -1516,6 +1516,7 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
+
 <script>
 // Supabase Configuration
 const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
@@ -1857,13 +1858,31 @@ async function saveMealPlanToDatabase() {
             plan_data: currentPlan.data,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            start_date: new Date().toISOString(), // Plan start date
+            start_date: new Date().toISOString(),
             end_date: currentPlan.type === 'weekly' ? 
-                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : // Weekly plan end date
-                new Date().toISOString(), // Daily plan end date (same as start)
+                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() :
+                new Date().toISOString(),
             status: 'active',
             version: 1
         };
+
+        // First, check if the table exists and has the correct structure
+        // For debugging, let's log the table structure
+        const { data: tableData, error: tableError } = await supabase
+            .from('information_schema.tables')
+            .select('*')
+            .eq('table_name', 'meal_plans');
+
+        if (tableError) {
+            console.error('Error checking table:', tableError);
+            showToast('Database configuration error', 'error');
+            return;
+        }
+
+        if (!tableData || tableData.length === 0) {
+            showToast('Meal plans table does not exist', 'error');
+            return;
+        }
 
         // Save to database
         const { data, error } = await supabase
@@ -1871,7 +1890,16 @@ async function saveMealPlanToDatabase() {
             .insert([planToSave])
             .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Detailed error:', error);
+            throw error;
+        }
+
+        if (!data || data.length === 0) {
+            throw new Error('No data returned from insert operation');
+        }
+
+        const insertedPlanId = data[0].id;
 
         // Also save individual meals to a separate table for better querying
         if (currentPlan.type === 'weekly') {
@@ -1879,10 +1907,10 @@ async function saveMealPlanToDatabase() {
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             
             days.forEach(day => {
-                if (currentPlan.data.plan[day]) {
+                if (currentPlan.data.plan && currentPlan.data.plan[day]) {
                     currentPlan.data.plan[day].forEach(meal => {
                         mealsToInsert.push({
-                            plan_id: data[0].id,
+                            plan_id: insertedPlanId,
                             user_id: currentUser.id,
                             day_of_week: day,
                             meal_type: meal.type,
@@ -1890,6 +1918,7 @@ async function saveMealPlanToDatabase() {
                             description: meal.description,
                             prep_time: meal.prepTime,
                             calories: meal.calories,
+                            cost: meal.cost || '0.00', // Ensure cost has a default value
                             ingredients: JSON.stringify(meal.ingredients || []),
                             instructions: JSON.stringify(meal.steps || []),
                             created_at: new Date().toISOString()
@@ -1903,14 +1932,17 @@ async function saveMealPlanToDatabase() {
                     .from('meals')
                     .insert(mealsToInsert);
                 
-                if (mealsError) throw mealsError;
+                if (mealsError) {
+                    console.error('Error saving meals:', mealsError);
+                    throw mealsError;
+                }
             }
         } else {
             // Save daily meal
             const { error: mealError } = await supabase
                 .from('meals')
                 .insert([{
-                    plan_id: data[0].id,
+                    plan_id: insertedPlanId,
                     user_id: currentUser.id,
                     day_of_week: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
                     meal_type: currentPlan.data.type,
@@ -1918,18 +1950,21 @@ async function saveMealPlanToDatabase() {
                     description: currentPlan.data.description,
                     prep_time: currentPlan.data.prepTime,
                     calories: currentPlan.data.calories,
-                    cost: currentPlan.data.cost,
+                    cost: currentPlan.data.cost || '0.00',
                     ingredients: JSON.stringify(currentPlan.data.ingredients || []),
                     instructions: JSON.stringify(currentPlan.data.steps || []),
                     created_at: new Date().toISOString()
                 }]);
             
-            if (mealError) throw mealError;
+            if (mealError) {
+                console.error('Error saving daily meal:', mealError);
+                throw mealError;
+            }
         }
 
         showToast('Meal plan saved successfully!', 'success');
     } catch (error) {
-        console.error('Error saving meal plan:', error);
+        console.error('Detailed error saving meal plan:', error);
         showToast('Failed to save meal plan: ' + error.message, 'error');
     } finally {
         const loadingOverlay = document.getElementById('loadingOverlay');
