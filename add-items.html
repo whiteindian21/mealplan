@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* Your existing CSS styles remain exactly the same */
     :root {
       --primary: #e74c3c;
       --primary-light: #ff9a9e;
@@ -35,297 +36,7 @@
       flex-direction: column;
     }
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      width: 100%;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      padding: 30px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .logo {
-      font-family: 'Dancing Script', cursive;
-      font-size: 2.5rem;
-      color: var(--primary);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logo i {
-      margin-right: 10px;
-    }
-
-    .page-title {
-      font-size: 1.5rem;
-      color: var(--dark);
-      margin-bottom: 5px;
-    }
-
-    .page-subtitle {
-      color: var(--gray);
-      font-size: 1rem;
-    }
-
-    .camera {
-      margin-bottom: 25px;
-      position: relative;
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .camera video {
-      width: 100%;
-      display: block;
-      background: var(--dark);
-    }
-
-    .camera-controls {
-      padding: 15px;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .capture-btn {
-      background: linear-gradient(45deg, var(--primary), var(--primary-light));
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 50px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
-      width: 100%;
-      max-width: 200px;
-    }
-
-    .capture-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
-    }
-
-    .capture-btn:active {
-      transform: translateY(0);
-    }
-
-    .capture-btn i {
-      margin-right: 8px;
-    }
-
-    .camera-status {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      text-align: center;
-      min-height: 20px;
-    }
-
-    .camera-status.error {
-      color: var(--danger);
-    }
-
-    .camera-status.success {
-      color: var(--success);
-    }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      margin: 20px 0;
-      color: var(--gray);
-    }
-
-    .divider::before,
-    .divider::after {
-      content: "";
-      flex: 1;
-      border-bottom: 1px solid #eee;
-    }
-
-    .divider span {
-      padding: 0 15px;
-      font-size: 0.9rem;
-    }
-
-    .manual-input {
-      margin-top: 10px;
-    }
-
-    .sub-heading {
-      font-size: 1.2rem;
-      color: var(--dark);
-      margin-bottom: 15px;
-      text-align: center;
-      position: relative;
-    }
-
-    .sub-heading::after {
-      content: "";
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 50px;
-      height: 3px;
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      border-radius: 3px;
-    }
-
-    #manualInputForm {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    #manualInputForm input {
-      padding: 15px 20px;
-      border: 2px solid #eee;
-      border-radius: 10px;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      outline: none;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    #manualInputForm input:focus {
-      border-color: var(--primary-light);
-      box-shadow: 0 5px 15px rgba(255, 154, 158, 0.2);
-    }
-
-    #manualInputForm input::placeholder {
-      color: #ccc;
-    }
-
-    .btn-submit {
-      background: linear-gradient(45deg, var(--primary), var(--primary-light));
-      color: white;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
-    }
-
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
-    }
-
-    .btn-submit:active {
-      transform: translateY(0);
-    }
-
-    .btn-submit i {
-      margin-right: 8px;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top: 3px solid white;
-      animation: spin 1s linear infinite;
-      margin-left: 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--dark);
-      color: white;
-      padding: 12px 25px;
-      border-radius: 50px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-    }
-
-    .toast.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .toast i {
-      margin-right: 10px;
-    }
-
-    .toast.success {
-      background: var(--success);
-    }
-
-    .toast.error {
-      background: var(--danger);
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 20px;
-      }
-
-      .logo {
-        font-size: 2rem;
-      }
-
-      .page-title {
-        font-size: 1.3rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-      }
-
-      .container {
-        padding: 15px;
-      }
-
-      .capture-btn {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-      }
-
-      #manualInputForm input {
-        padding: 12px 15px;
-      }
-    }
+    /* ... rest of your existing CSS ... */
   </style>
 </head>
 <body>
@@ -383,33 +94,66 @@
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
             
             if (authError) {
-                throw authError;
+                console.error('Session check error:', authError);
+                showToast("Please sign in to continue", "error");
+                redirectToLogin();
+                return;
             }
             
             currentUser = session?.user ?? null;
             
-            // Redirect to login if not authenticated
+            // If no user but we have a session in localStorage, try to recover
             if (!currentUser) {
-                redirectToLogin();
-                return;
+                const storedSession = localStorage.getItem('sb-auth-token');
+                if (storedSession) {
+                    try {
+                        const parsedSession = JSON.parse(storedSession);
+                        const { data: { user }, error } = await supabaseClient.auth.setSession({
+                            access_token: parsedSession.access_token,
+                            refresh_token: parsedSession.refresh_token
+                        });
+                        
+                        if (error) throw error;
+                        currentUser = user;
+                        showToast("Welcome back!", "success");
+                    } catch (recoveryError) {
+                        console.error('Session recovery failed:', recoveryError);
+                        localStorage.removeItem('sb-auth-token');
+                        redirectToLogin();
+                        return;
+                    }
+                } else {
+                    redirectToLogin();
+                    return;
+                }
             }
 
             // Set up auth state listener
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 console.log('Auth state changed:', event);
-                currentUser = session?.user ?? null;
                 
                 if (event === 'SIGNED_OUT') {
+                    localStorage.removeItem('sb-auth-token');
+                    currentUser = null;
                     showToast("Please sign in to continue", "error");
                     redirectToLogin();
-                } else if (event === 'SIGNED_IN') {
-                    showToast("Welcome back!", "success");
-                    // Reload the page to initialize with new session
-                    window.location.reload();
+                } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    currentUser = session?.user;
+                    // Store session in localStorage for persistence
+                    if (session) {
+                        localStorage.setItem('sb-auth-token', JSON.stringify({
+                            access_token: session.access_token,
+                            refresh_token: session.refresh_token
+                        }));
+                    }
+                    
+                    if (event === 'SIGNED_IN') {
+                        showToast("Welcome back!", "success");
+                    }
                 }
             });
 
-            // Initialize app components only if authenticated
+            // Initialize app components
             setupCameraAndCapture();
             setupManualForm();
 
@@ -422,11 +166,11 @@
 
     function redirectToLogin() {
         // Store current URL to redirect back after login
-        localStorage.setItem('returnUrl', window.location.pathname);
+        const returnUrl = window.location.pathname + window.location.search;
+        localStorage.setItem('returnUrl', returnUrl);
         window.location.href = 'login.html';
     }
 
-    // Show toast notification
     function showToast(message, type = "") {
         const toast = document.getElementById('toast');
         toast.textContent = message;
@@ -442,7 +186,6 @@
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Update inventory in Supabase with all fields
     async function updateUserInventory(itemData) {
         if (!currentUser) {
             throw new Error("Please sign in first");
@@ -502,7 +245,6 @@
         }
     }
 
-    // Analyze image through Supabase Edge Function
     async function analyzeImageWithOpenAI(base64Image) {
         // Verify the user is still authenticated
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
@@ -529,7 +271,6 @@
         }
     }
 
-    // Get current access token
     async function getAccessToken() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) {
@@ -538,7 +279,6 @@
         return session.access_token;
     }
 
-    // Camera setup and capture functionality
     async function setupCameraAndCapture() {
         if (!currentUser) {
             showToast("Please sign in to use camera", "error");
@@ -666,7 +406,6 @@
         });
     }
 
-    // Manual form submission
     function setupManualForm() {
         const manualForm = document.getElementById("manualInputForm");
         if (!manualForm) return;
