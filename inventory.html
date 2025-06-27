@@ -644,299 +644,301 @@
     </div>
 
     <!-- Supabase Client -->
-       // Initialize Supabase client
-    const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubWFwdnJkYW1zdWd0ZG51ZXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODYzMzYsImV4cCI6MjA2NTg2MjMzNn0.sLeHEQYRJSrCTDN7yi6zWSJ1Qb_6xtEZJzgJHeZfpo8';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Global variables
-    let currentUser = null;
-    let inventoryItems = [];
+        // Global variables
+        let currentUser = null;
+        let inventoryItems = [];
 
-    // Initialize the page
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Set up hamburger menu
-        const hamburgerMenu = document.getElementById('hamburgerMenu');
-        const navLinks = document.getElementById('navLinks');
-        
-        hamburgerMenu.addEventListener('click', () => {
-            hamburgerMenu.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-        
-        // Check if user is authenticated
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (user) {
-            currentUser = user;
-            loadInventory();
-        } else {
-            // User is not logged in - show message
-            document.getElementById('inventory-container').innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>You need to be logged in to view your inventory</p>
-                    <button onclick="window.location.href='index.html'">
-                        <i class="fas fa-sign-in-alt"></i> Go to Login
-                    </button>
-                </div>
-            `;
-        }
-
-        // Link profile button to user profile
-        document.getElementById('profile-btn').addEventListener('click', function() {
-            showNotification('Profile page would open here');
-        });
-    });
-
-    // Load inventory from Supabase
-    async function loadInventory() {
-        try {
-            const { data, error } = await supabase
-                .from('inventory_items')  // Changed from 'inventory' to 'inventory_items'
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .order('expiry_date', { ascending: true });
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set up hamburger menu
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const navLinks = document.getElementById('navLinks');
             
-            if (error) throw error;
+            hamburgerMenu.addEventListener('click', () => {
+                hamburgerMenu.classList.toggle('active');
+                navLinks.classList.toggle('active');
+            });
             
-            inventoryItems = data || [];
-            updateStats();
-            renderInventory();
+            // Check if user is authenticated
+            const { data: { user }, error } = await supabase.auth.getUser();
             
-        } catch (error) {
-            console.error('Error loading inventory:', error);
-            document.getElementById('inventory-container').innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Failed to load inventory. Please try again.</p>
-                    <button onclick="location.reload()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
-            `;
-        }
-    }
-
-    // Update inventory statistics
-    function updateStats() {
-        document.getElementById('totalItems').textContent = inventoryItems.length;
-        
-        // Count expiring items (within 3 days)
-        const today = new Date();
-        const expiringItems = inventoryItems.filter(item => {
-            if (!item.expiry_date) return false;
-            const expiryDate = new Date(item.expiry_date);
-            const diffTime = expiryDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays > 0 && diffDays <= 3;
-        });
-        
-        document.getElementById('expiringItems').textContent = expiringItems.length;
-        
-        // Count fresh items (more than 7 days)
-        const freshItems = inventoryItems.filter(item => {
-            if (!item.expiry_date) return false;
-            const expiryDate = new Date(item.expiry_date);
-            const diffTime = expiryDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays > 7;
-        });
-        
-        document.getElementById('freshItems').textContent = freshItems.length;
-    }
-
-    // Render inventory items
-    function renderInventory() {
-        const container = document.getElementById('inventory-container');
-        
-        if (!inventoryItems || inventoryItems.length === 0) {
-            container.innerHTML = `
-                <div class="empty-inventory">
-                    <i class="fas fa-box-open"></i>
-                    <p>Your inventory is empty</p>
-                    <p>Add your first item to get started!</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = '';
-        
-        inventoryItems.forEach(item => {
-            const expiryStatus = getExpiryStatus(item.expiry_date);
-            
-            const card = document.createElement('div');
-            card.className = 'inventory-card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="item-image">
-                        <i class="${getCategoryIcon(item.category_id)}"></i>
+            if (user) {
+                currentUser = user;
+                loadInventory();
+            } else {
+                // User is not logged in - show message
+                document.getElementById('inventory-container').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>You need to be logged in to view your inventory</p>
+                        <button onclick="window.location.href='index.html'">
+                            <i class="fas fa-sign-in-alt"></i> Go to Login
+                        </button>
                     </div>
-                    <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-category">${getCategoryName(item.category_id)}</div>
+                `;
+            }
+
+            // Link profile button to user profile
+            document.getElementById('profile-btn').addEventListener('click', function() {
+                showNotification('Profile page would open here');
+            });
+        });
+
+        // Load inventory from Supabase
+        async function loadInventory() {
+            try {
+                // First fetch the categories if needed
+                const { data: categories, error: categoriesError } = await supabase
+                    .from('categories')
+                    .select('*');
+                
+                if (categoriesError) throw categoriesError;
+                
+                // Then fetch inventory items with category names
+                const { data: inventoryData, error: inventoryError } = await supabase
+                    .from('inventory_items')
+                    .select(`
+                        *,
+                        categories:category_id (name)
+                    `)
+                    .eq('user_id', currentUser.id)
+                    .order('expiry_date', { ascending: true });
+                
+                if (inventoryError) throw inventoryError;
+                
+                // Map the data to include category names
+                inventoryItems = inventoryData.map(item => ({
+                    ...item,
+                    category_name: item.categories?.name || 'Other'
+                }));
+                
+                updateStats();
+                renderInventory();
+                
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+                document.getElementById('inventory-container').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load inventory. Please try again.</p>
+                        <button onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
                     </div>
-                </div>
-                
-                <div class="item-details">
-                    <div><i class="fas fa-weight"></i> ${item.quantity} ${item.unit}</div>
-                    <div><i class="fas fa-calendar"></i> ${item.expiry_date ? formatDate(item.expiry_date) : 'No expiry'}</div>
-                </div>
-                
-                <div class="item-expiry ${expiryStatus.class}">${expiryStatus.text}</div>
-                
-                <div class="quick-actions">
-                    <button class="action-btn" data-id="${item.id}" data-action="meal">
-                        <i class="fas fa-utensils"></i>
-                        Use in Meal
-                    </button>
-                    <button class="action-btn" data-id="${item.id}" data-action="grocery">
-                        <i class="fas fa-shopping-cart"></i>
-                        To Grocery
-                    </button>
-                    <button class="action-btn" data-id="${item.id}" data-action="delete">
-                        <i class="fas fa-trash"></i>
-                        Delete
-                    </button>
-                </div>
-            `;
-            
-            container.appendChild(card);
-        });
-        
-        // Add event listeners to action buttons
-        document.querySelectorAll('.action-btn').forEach(btn => {
-            btn.addEventListener('click', handleQuickAction);
-        });
-    }
-
-    // Handle quick actions
-    function handleQuickAction(e) {
-        const itemId = e.currentTarget.dataset.id;
-        const action = e.currentTarget.dataset.action;
-        const item = inventoryItems.find(i => i.id == itemId);
-        
-        if (!item) return;
-        
-        if (action === 'meal') {
-            showNotification(`"${item.name}" will be used in meal planning`);
-        } else if (action === 'grocery') {
-            showNotification(`"${item.name}" added to grocery list`);
-        } else if (action === 'delete') {
-            deleteItem(item.id);
+                `;
+            }
         }
-    }
 
-    // Delete item from inventory
-    async function deleteItem(itemId) {
-        if (!confirm('Are you sure you want to delete this item?')) return;
-        
-        try {
-            const { error } = await supabase
-                .from('inventory_items')  // Changed from 'inventory' to 'inventory_items'
-                .delete()
-                .eq('id', itemId);
+        // Update inventory statistics
+        function updateStats() {
+            document.getElementById('totalItems').textContent = inventoryItems.length;
             
-            if (error) throw error;
+            // Count expiring items (within 3 days)
+            const today = new Date();
+            const expiringItems = inventoryItems.filter(item => {
+                if (!item.expiry_date) return false;
+                const expiryDate = new Date(item.expiry_date);
+                const diffTime = expiryDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 0 && diffDays <= 3;
+            });
             
-            showNotification('Item deleted successfully');
+            document.getElementById('expiringItems').textContent = expiringItems.length;
             
-            // Reload inventory
-            loadInventory();
+            // Count fresh items (more than 7 days)
+            const freshItems = inventoryItems.filter(item => {
+                if (!item.expiry_date) return false;
+                const expiryDate = new Date(item.expiry_date);
+                const diffTime = expiryDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 7;
+            });
             
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            showNotification('Failed to delete item', true);
+            document.getElementById('freshItems').textContent = freshItems.length;
         }
-    }
 
-    // Show notification
-    function showNotification(message, isError = false) {
-        // Remove existing notifications
-        document.querySelectorAll('.notification').forEach(el => el.remove());
-        
-        const notification = document.createElement('div');
-        notification.className = `notification ${isError ? 'error' : ''}`;
-        notification.innerHTML = `
-            <i class="fas fa-${isError ? 'exclamation-circle' : 'check-circle'}"></i>
-            ${message}
-        `;
-        
-        document.body.appendChild(notification);
-        
+        // Render inventory items
+        function renderInventory() {
+            const container = document.getElementById('inventory-container');
+            
+            if (!inventoryItems || inventoryItems.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-inventory">
+                        <i class="fas fa-box-open"></i>
+                        <p>Your inventory is empty</p>
+                        <p>Add your first item to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            inventoryItems.forEach(item => {
+                const expiryStatus = getExpiryStatus(item.expiry_date);
+                
+                const card = document.createElement('div');
+                card.className = 'inventory-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="item-image">
+                            <i class="${getCategoryIcon(item.category_id)}"></i>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-category">${item.category_name || 'Other'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="item-details">
+                        <div><i class="fas fa-weight"></i> ${item.quantity} ${item.unit}</div>
+                        <div><i class="fas fa-calendar"></i> ${item.expiry_date ? formatDate(item.expiry_date) : 'No expiry'}</div>
+                    </div>
+                    
+                    <div class="item-expiry ${expiryStatus.class}">${expiryStatus.text}</div>
+                    
+                    <div class="quick-actions">
+                        <button class="action-btn" data-id="${item.id}" data-action="meal">
+                            <i class="fas fa-utensils"></i>
+                            Use in Meal
+                        </button>
+                        <button class="action-btn" data-id="${item.id}" data-action="grocery">
+                            <i class="fas fa-shopping-cart"></i>
+                            To Grocery
+                        </button>
+                        <button class="action-btn" data-id="${item.id}" data-action="delete">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', handleQuickAction);
+            });
+        }
+
+        // Handle quick actions
+        function handleQuickAction(e) {
+            const itemId = e.currentTarget.dataset.id;
+            const action = e.currentTarget.dataset.action;
+            const item = inventoryItems.find(i => i.id == itemId);
+            
+            if (!item) return;
+            
+            if (action === 'meal') {
+                showNotification(`"${item.name}" will be used in meal planning`);
+            } else if (action === 'grocery') {
+                showNotification(`"${item.name}" added to grocery list`);
+            } else if (action === 'delete') {
+                deleteItem(item.id);
+            }
+        }
+
+        // Delete item from inventory
+        async function deleteItem(itemId) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('inventory_items')
+                    .delete()
+                    .eq('id', itemId);
+                
+                if (error) throw error;
+                
+                showNotification('Item deleted successfully');
+                
+                // Reload inventory
+                loadInventory();
+                
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showNotification('Failed to delete item', true);
+            }
+        }
+
         // Show notification
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        
-        // Hide after 3 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
+        function showNotification(message, isError = false) {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.innerHTML = `
+                <i class="fas fa-${isError ? 'exclamation-circle' : 'check-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
             setTimeout(() => {
-                if (document.body.contains(notification)) {
-                    document.body.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
-    }
-
-    // Helper functions
-    function getExpiryStatus(expiryDate) {
-        if (!expiryDate) return { text: 'No expiry date', class: '' };
-        
-        const today = new Date();
-        const expiry = new Date(expiryDate);
-        const diffTime = expiry - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) return { text: 'Expired', class: 'expired' };
-        if (diffDays === 0) return { text: 'Expires today', class: 'expiring-soon' };
-        if (diffDays === 1) return { text: 'Expires tomorrow', class: 'expiring-soon' };
-        if (diffDays <= 3) return { text: `Expires in ${diffDays} days`, class: 'expiring-soon' };
-        if (diffDays <= 7) return { text: `Expires in ${diffDays} days`, class: '' };
-        return { text: `Expires in ${diffDays} days`, class: 'fresh' };
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric'
-        });
-    }
-
-    function getCategoryIcon(categoryId) {
-        // You might want to fetch actual categories from your database
-        // This is a placeholder - adjust based on your category_id values
-        switch (categoryId) {
-            case 1: return 'fas fa-apple-alt'; // Fruits
-            case 2: return 'fas fa-carrot';    // Vegetables
-            case 3: return 'fas fa-cheese';    // Dairy
-            case 4: return 'fas fa-drumstick-bite'; // Meat
-            case 5: return 'fas fa-wine-bottle'; // Pantry
-            case 6: return 'fas fa-coffee';     // Beverages
-            case 7: return 'fas fa-snowflake';  // Frozen
-            default: return 'fas fa-shopping-basket'; // Other
+                notification.classList.add('show');
+            }, 10);
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
         }
-    }
 
-    function getCategoryName(categoryId) {
-        // You might want to fetch actual categories from your database
-        // This is a placeholder - adjust based on your category_id values
-        switch (categoryId) {
-            case 1: return 'Fruits';
-            case 2: return 'Vegetables';
-            case 3: return 'Dairy & Eggs';
-            case 4: return 'Meat & Seafood';
-            case 5: return 'Pantry Staples';
-            case 6: return 'Beverages';
-            case 7: return 'Frozen Foods';
-            default: return 'Other';
+        // Helper functions
+        function getExpiryStatus(expiryDate) {
+            if (!expiryDate) return { text: 'No expiry date', class: '' };
+            
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { text: 'Expired', class: 'expired' };
+            if (diffDays === 0) return { text: 'Expires today', class: 'expiring-soon' };
+            if (diffDays === 1) return { text: 'Expires tomorrow', class: 'expiring-soon' };
+            if (diffDays <= 3) return { text: `Expires in ${diffDays} days`, class: 'expiring-soon' };
+            if (diffDays <= 7) return { text: `Expires in ${diffDays} days`, class: '' };
+            return { text: `Expires in ${diffDays} days`, class: 'fresh' };
         }
-    }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric'
+            });
+        }
+
+        function getCategoryIcon(categoryId) {
+            // Default icons based on category_id
+            switch (categoryId) {
+                case 1: return 'fas fa-apple-alt'; // Fruits
+                case 2: return 'fas fa-carrot';    // Vegetables
+                case 3: return 'fas fa-cheese';    // Dairy
+                case 4: return 'fas fa-drumstick-bite'; // Meat
+                case 5: return 'fas fa-wine-bottle'; // Pantry
+                case 6: return 'fas fa-coffee';     // Beverages
+                case 7: return 'fas fa-snowflake';  // Frozen
+                default: return 'fas fa-shopping-basket'; // Other
+            }
+        }
     </script>
 </body>
 </html>
