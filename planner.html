@@ -342,8 +342,8 @@
             box-shadow: 0 6px 16px rgba(231, 76, 60, 0.3);
         }
 
-        /* Calendar Container */
-        .calendar-container {
+        /* Planner Container */
+        .planner-container {
             background: white;
             border-radius: 15px;
             padding: 25px;
@@ -352,19 +352,19 @@
             display: none;
         }
 
-        .calendar-header {
+        .planner-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        .calendar-actions {
+        .planner-actions {
             display: flex;
             gap: 10px;
         }
 
-        .calendar-btn {
+        .planner-btn {
             background: var(--sage);
             color: white;
             border: none;
@@ -377,48 +377,163 @@
             transition: all 0.3s ease;
         }
 
-        .calendar-btn:hover {
+        .planner-btn:hover {
             background: var(--apricot);
             transform: translateY(-2px);
         }
-
-        /* Calendar */
-        #calendar {
-            margin-top: 20px;
-            min-height: 600px;
+        
+        /* Meal cards */
+        .meal-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
         }
-
-        .fc-event {
-            cursor: pointer;
-            border-radius: 8px;
-            padding: 5px;
+        
+        .meal-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .meal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .meal-header {
+            padding: 20px;
+            background: linear-gradient(45deg, var(--coral), var(--apricot));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .meal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .meal-type {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 0.9rem;
-            transition: transform 0.2s ease;
         }
-
-        .fc-event:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        
+        .meal-content {
+            padding: 20px;
         }
-
-        .breakfast-event {
-            background-color: #ffd8a8;
-            border-color: #ffa94d;
+        
+        .meal-details {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
         }
-
-        .lunch-event {
-            background-color: #b2f2bb;
-            border-color: #40c057;
+        
+        .meal-detail {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: rgba(162, 197, 172, 0.1);
+            border-radius: 8px;
         }
-
-        .dinner-event {
-            background-color: #a5d8ff;
-            border-color: #339af0;
+        
+        .detail-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 5px;
         }
-
-        .snack-event {
-            background-color: #eebefa;
-            border-color: #cc5de8;
+        
+        .detail-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .meal-description {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+        
+        .meal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .meal-action {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .meal-action.edit {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+        }
+        
+        .meal-action.edit:hover {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .meal-action.delete {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
+        
+        .meal-action.delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .meal-action.add {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+        }
+        
+        .meal-action.add:hover {
+            background: var(--success);
+            color: white;
+        }
+        
+        .add-meal-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(162, 197, 172, 0.1);
+            border: 2px dashed var(--sage);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .add-meal-card:hover {
+            background: rgba(162, 197, 172, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .add-meal-card i {
+            font-size: 2.5rem;
+            color: var(--sage);
+            margin-bottom: 15px;
+        }
+        
+        .add-meal-card h3 {
+            color: var(--sage);
         }
 
         /* Meal Details Modal */
@@ -596,7 +711,7 @@
 
         /* Responsive Design */
         @media (max-width: 992px) {
-            .calendar-container, .auth-container {
+            .planner-container, .auth-container {
                 padding: 15px;
             }
         }
@@ -641,23 +756,27 @@
                 font-size: 2rem;
             }
 
-            .calendar-header {
+            .planner-header {
                 flex-direction: column;
                 gap: 15px;
             }
 
-            .calendar-actions {
+            .planner-actions {
                 width: 100%;
                 justify-content: center;
+            }
+            
+            .meal-cards {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 576px) {
-            .calendar-btn span {
+            .planner-btn span {
                 display: none;
             }
 
-            .calendar-btn i {
+            .planner-btn i {
                 margin-right: 0;
             }
             
@@ -751,6 +870,30 @@
             color: var(--secondary);
             min-width: 20px;
         }
+        
+        /* Meal plan filter */
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            border-color: var(--primary);
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -768,6 +911,9 @@
             </div>
             <div class="nav-links">
                 <a href="#" class="active"><i class="fas fa-calendar-alt"></i> Planner</a>
+                <a href="#"><i class="fas fa-box-open"></i> Inventory</a>
+                <a href="#"><i class="fas fa-shopping-basket"></i> Grocery</a>
+                <a href="#"><i class="fas fa-cog"></i> Settings</a>
                 <div class="user-section">
                     <div class="user-info" id="userInfo" style="display: none;">
                         <div class="user-avatar" id="userAvatar">U</div>
@@ -842,34 +988,40 @@
         </div>
 
         <!-- Planner Container (shown when logged in) -->
-        <div class="calendar-container" id="plannerContainer">
-            <h1 class="main-heading">Meal Planner Calendar</h1>
+        <div class="planner-container" id="plannerContainer">
+            <h1 class="main-heading">Your Meal Plans</h1>
             
-            <div class="demo-message">
-                <h2>Your Meal Plans</h2>
-                <p>All your saved meals are displayed here. Click on any date to add a meal.</p>
-            </div>
-            
-            <div class="calendar-header">
-                <h2><i class="fas fa-calendar"></i> Your Meal Schedule</h2>
-                <div class="calendar-actions">
-                    <button class="calendar-btn" id="prevBtn">
+            <div class="planner-header">
+                <h2><i class="fas fa-calendar"></i> Weekly Meal Schedule</h2>
+                <div class="planner-actions">
+                    <button class="planner-btn" id="prevWeekBtn">
                         <i class="fas fa-chevron-left"></i>
-                        <span>Prev</span>
+                        <span>Previous Week</span>
                     </button>
-                    <button class="calendar-btn" id="todayBtn">
+                    <button class="planner-btn" id="todayBtn">
                         <i class="fas fa-calendar-day"></i>
-                        <span>Today</span>
+                        <span>This Week</span>
                     </button>
-                    <button class="calendar-btn" id="nextBtn">
-                        <span>Next</span>
+                    <button class="planner-btn" id="nextWeekBtn">
+                        <span>Next Week</span>
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             </div>
-            <div id="calendar"></div>
-            <div class="loading-container" id="loadingIndicator">
-                <div class="loading-spinner"></div>
+            
+            <div class="filter-container">
+                <button class="filter-btn active" data-filter="all">All Meals</button>
+                <button class="filter-btn" data-filter="breakfast">Breakfast</button>
+                <button class="filter-btn" data-filter="lunch">Lunch</button>
+                <button class="filter-btn" data-filter="dinner">Dinner</button>
+                <button class="filter-btn" data-filter="snack">Snacks</button>
+            </div>
+            
+            <div class="meal-cards" id="mealCards">
+                <!-- Meal cards will be loaded here -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -908,8 +1060,18 @@
             </div>
             
             <div class="form-group">
+                <label for="mealDate"><i class="fas fa-calendar"></i> Date</label>
+                <input type="date" id="mealDate" name="mealDate" required>
+            </div>
+            
+            <div class="form-group">
                 <label for="mealTime"><i class="fas fa-clock"></i> Time</label>
-                <input type="text" id="mealTime" name="mealTime" placeholder="e.g., 08:00 AM">
+                <input type="time" id="mealTime" name="mealTime" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="mealCalories"><i class="fas fa-fire"></i> Estimated Calories</label>
+                <input type="number" id="mealCalories" name="mealCalories" placeholder="e.g., 450" min="0">
             </div>
             
             <div class="meal-actions">
@@ -945,30 +1107,32 @@
         const loginForm = document.getElementById('loginForm');
         const signupForm = document.getElementById('signupForm');
         const authTabs = document.querySelectorAll('.auth-tab');
-        const calendarEl = document.getElementById('calendar');
+        const mealCards = document.getElementById('mealCards');
         const mealModal = document.getElementById('mealModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalDate = document.getElementById('modalDate');
         const mealForm = document.getElementById('mealForm');
         const mealTitle = document.getElementById('mealTitle');
         const mealDescription = document.getElementById('mealDescription');
+        const mealDate = document.getElementById('mealDate');
         const mealTime = document.getElementById('mealTime');
+        const mealCalories = document.getElementById('mealCalories');
         const saveBtn = document.getElementById('saveBtn');
         const deleteBtn = document.getElementById('deleteBtn');
         const cancelBtn = document.getElementById('cancelBtn');
-        const prevBtn = document.getElementById('prevBtn');
+        const prevWeekBtn = document.getElementById('prevWeekBtn');
         const todayBtn = document.getElementById('todayBtn');
-        const nextBtn = document.getElementById('nextBtn');
+        const nextWeekBtn = document.getElementById('nextWeekBtn');
         const mealTypeButtons = document.querySelectorAll('.meal-type-btn');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+        const filterButtons = document.querySelectorAll('.filter-btn');
         
         // Global variables
-        let calendar;
-        let selectedDate = '';
-        let selectedEvent = null;
-        let selectedMealType = 'breakfast';
         let currentUser = null;
-        
+        let currentWeekStart = new Date();
+        let selectedMealType = 'breakfast';
+        let currentFilter = 'all';
+        let selectedMeal = null;
+
         // Initialize the page
         document.addEventListener('DOMContentLoaded', async function() {
             // Check if user is logged in
@@ -987,7 +1151,7 @@
                 currentUser = data.session.user;
                 showPlanner();
                 updateUserInfo();
-                initCalendar();
+                loadMealPlans();
             } else {
                 // No user session
                 showAuthForm();
@@ -1027,165 +1191,232 @@
             streakCount.textContent = Math.floor(Math.random() * 14) + 1;
         }
         
-        // Initialize calendar
-        function initCalendar() {
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: false,
-                height: 'auto',
-                dayMaxEventRows: 3,
-                eventDisplay: 'block',
-                eventTimeFormat: {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    omitZeroMinute: true,
-                    meridiem: 'short'
-                },
-                eventClick: function(info) {
-                    selectedEvent = info.event;
-                    showMealModal('Edit Meal Plan', info.event.start, info.event);
-                },
-                dateClick: function(info) {
-                    selectedEvent = null;
-                    showMealModal('Add Meal Plan', info.date);
-                },
-                events: async function(fetchInfo, successCallback, failureCallback) {
-                    try {
-                        showLoading();
-                        const events = await loadMealPlansForCalendar(fetchInfo);
-                        successCallback(events);
-                    } catch (error) {
-                        console.error('Error fetching events:', error);
-                        failureCallback(error);
-                        showToast('Failed to load meal plans: ' + error.message, 'error');
-                    } finally {
-                        hideLoading();
-                    }
-                },
-                eventContent: function(arg) {
-                    const type = arg.event.extendedProps.type || 'breakfast';
-                    const icon = getMealIcon(type);
-                    
-                    return {
-                        html: `
-                            <div class="fc-event-main">
-                                <i class="${icon}"></i>
-                                <strong>${arg.event.title}</strong>
-                                ${arg.event.extendedProps.time ? `<div>${arg.event.extendedProps.time}</div>` : ''}
-                            </div>
-                        `
-                    };
-                },
-                eventClassNames: function(arg) {
-                    const type = arg.event.extendedProps.type || 'breakfast';
-                    return `${type}-event`;
-                }
-            });
+        // Load meal plans for the current week
+        async function loadMealPlans() {
+            if (!currentUser) return;
             
-            calendar.render();
-        }
-        
-        // Get meal icon based on type
-        function getMealIcon(type) {
-            switch(type) {
-                case 'breakfast': return 'fas fa-egg';
-                case 'lunch': return 'fas fa-sandwich';
-                case 'dinner': return 'fas fa-utensils';
-                case 'snack': return 'fas fa-apple-alt';
-                default: return 'fas fa-utensils';
-            }
-        }
-        
-        // Load meal plans for calendar
-        async function loadMealPlansForCalendar(fetchInfo) {
-            if (!currentUser) return [];
+            showLoading();
             
             try {
-                // For demo purposes, we'll use mock data
-                // In a real app, you would fetch from Supabase:
-                // const { data, error } = await supabase
-                //   .from('meal_plans')
-                //   .select('*')
-                //   .eq('user_id', currentUser.id)
-                //   .gte('date', fetchInfo.start.toISOString().split('T')[0])
-                //   .lt('date', fetchInfo.end.toISOString().split('T')[0]);
+                // Calculate start and end of current week
+                const startOfWeek = new Date(currentWeekStart);
+                startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
                 
-                // Mock data for demo
-                const mockData = [
-                    {
-                        id: '1',
-                        title: 'Healthy Breakfast',
-                        description: 'Oatmeal with fruits and nuts',
-                        time: '8:00 AM',
-                        date: new Date().toISOString().split('T')[0],
-                        type: 'breakfast'
-                    },
-                    {
-                        id: '2',
-                        title: 'Team Lunch',
-                        description: 'Lunch with the development team',
-                        time: '1:00 PM',
-                        date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0],
-                        type: 'lunch'
-                    },
-                    {
-                        id: '3',
-                        title: 'Family Dinner',
-                        description: 'Homemade pasta with tomato sauce',
-                        time: '7:30 PM',
-                        date: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0],
-                        type: 'dinner'
-                    }
-                ];
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(endOfWeek.getDate() + 6);
                 
-                return mockData.map(plan => ({
-                    id: plan.id,
-                    title: plan.title,
-                    start: plan.date,
-                    extendedProps: {
-                        description: plan.description,
-                        time: plan.time,
-                        type: plan.type
-                    }
-                }));
+                // Format dates for Supabase query
+                const startDate = startOfWeek.toISOString().split('T')[0];
+                const endDate = endOfWeek.toISOString().split('T')[0];
                 
+                // Fetch meal plans from Supabase
+                const { data: mealPlans, error } = await supabase
+                    .from('meal_plans')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .gte('date', startDate)
+                    .lte('date', endDate)
+                    .order('date', { ascending: true })
+                    .order('time', { ascending: true });
+                
+                if (error) throw error;
+                
+                // Render meal cards
+                renderMealCards(mealPlans);
             } catch (error) {
                 console.error('Error loading meal plans:', error);
-                throw error;
+                showToast('Failed to load meal plans: ' + error.message, 'error');
+                // Render empty state
+                mealCards.innerHTML = '<div class="empty-state">Failed to load meal plans. Please try again.</div>';
+            } finally {
+                hideLoading();
             }
         }
         
-        // Show meal modal
-        function showMealModal(title, date, event = null) {
-            modalTitle.textContent = title;
-            modalDate.textContent = date.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+        // Render meal cards
+        function renderMealCards(meals) {
+            if (!meals || meals.length === 0) {
+                mealCards.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-utensils" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <h3>No meal plans for this week</h3>
+                        <p>Click the "Add Meal Plan" button to get started</p>
+                    </div>
+                    <div class="add-meal-card" id="addMealCard">
+                        <i class="fas fa-plus-circle"></i>
+                        <h3>Add Meal Plan</h3>
+                    </div>
+                `;
+                document.getElementById('addMealCard').addEventListener('click', showAddMealModal);
+                return;
+            }
+            
+            // Group meals by day
+            const mealsByDay = {};
+            meals.forEach(meal => {
+                const mealDate = new Date(meal.date).toDateString();
+                if (!mealsByDay[mealDate]) {
+                    mealsByDay[mealDate] = [];
+                }
+                mealsByDay[mealDate].push(meal);
             });
             
-            selectedDate = date.toISOString().split('T')[0];
+            // Generate HTML for each day
+            let mealCardsHTML = '';
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             
-            if (event) {
-                mealTitle.value = event.title;
-                mealDescription.value = event.extendedProps.description;
-                mealTime.value = event.extendedProps.time || '';
-                selectedMealType = event.extendedProps.type || 'breakfast';
-                deleteBtn.style.display = 'inline-block';
+            // Get start of week
+            const startOfWeek = new Date(currentWeekStart);
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            
+            // Create cards for each day of the week
+            for (let i = 0; i < 7; i++) {
+                const currentDate = new Date(startOfWeek);
+                currentDate.setDate(startOfWeek.getDate() + i);
+                const dateString = currentDate.toDateString();
+                const dayName = daysOfWeek[currentDate.getDay()];
+                const formattedDate = currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 
-                // Set active meal type
-                setActiveMealType(selectedMealType);
-            } else {
-                mealTitle.value = '';
-                mealDescription.value = '';
-                mealTime.value = '';
-                selectedMealType = 'breakfast';
-                deleteBtn.style.display = 'none';
+                const dayMeals = mealsByDay[dateString] || [];
                 
-                // Reset to breakfast type
-                setActiveMealType('breakfast');
+                mealCardsHTML += `
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <h3 class="meal-title">${dayName}</h3>
+                            <div class="meal-type">${formattedDate}</div>
+                        </div>
+                        <div class="meal-content">
+                            ${dayMeals.length > 0 ? 
+                                dayMeals.map(meal => renderMealItem(meal)).join('') : 
+                                '<p class="meal-description">No meals planned for this day</p>'
+                            }
+                            <button class="meal-action add" data-date="${currentDate.toISOString().split('T')[0]}">
+                                <i class="fas fa-plus"></i> Add Meal
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
+            
+            // Add the "Add Meal Plan" card at the end
+            mealCardsHTML += `
+                <div class="add-meal-card" id="addMealCard">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3>Add Meal Plan</h3>
+                </div>
+            `;
+            
+            mealCards.innerHTML = mealCardsHTML;
+            
+            // Add event listeners to "Add Meal" buttons
+            document.querySelectorAll('.meal-action.add').forEach(button => {
+                button.addEventListener('click', function() {
+                    const date = this.dataset.date;
+                    showAddMealModal(date);
+                });
+            });
+            
+            // Add event listener to "Add Meal Plan" card
+            document.getElementById('addMealCard').addEventListener('click', showAddMealModal);
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.meal-action.edit').forEach(button => {
+                button.addEventListener('click', function() {
+                    const mealId = this.dataset.id;
+                    const meal = meals.find(m => m.id === mealId);
+                    if (meal) {
+                        showEditMealModal(meal);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.meal-action.delete').forEach(button => {
+                button.addEventListener('click', function() {
+                    const mealId = this.dataset.id;
+                    const meal = meals.find(m => m.id === mealId);
+                    if (meal) {
+                        deleteMealPlan(meal);
+                    }
+                });
+            });
+        }
+        
+        // Render individual meal item
+        function renderMealItem(meal) {
+            const mealTime = meal.time ? new Date(`1970-01-01T${meal.time}`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            
+            return `
+                <div class="meal-details">
+                    <div class="meal-detail">
+                        <div class="detail-label">Type</div>
+                        <div class="detail-value">${meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}</div>
+                    </div>
+                    <div class="meal-detail">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">${mealTime}</div>
+                    </div>
+                    ${meal.calories ? `
+                    <div class="meal-detail">
+                        <div class="detail-label">Calories</div>
+                        <div class="detail-value">${meal.calories}</div>
+                    </div>
+                    ` : ''}
+                </div>
+                <p class="meal-description">${meal.title}</p>
+                <div class="meal-actions">
+                    <button class="meal-action edit" data-id="${meal.id}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="meal-action delete" data-id="${meal.id}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Show add meal modal
+        function showAddMealModal(date = null) {
+            modalTitle.textContent = 'Add Meal Plan';
+            selectedMeal = null;
+            
+            // Set default date to today or provided date
+            const today = date ? new Date(date) : new Date();
+            mealDate.value = today.toISOString().split('T')[0];
+            
+            // Set default time to current time
+            const now = new Date();
+            mealTime.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Reset other fields
+            mealTitle.value = '';
+            mealDescription.value = '';
+            mealCalories.value = '';
+            selectedMealType = 'breakfast';
+            deleteBtn.style.display = 'none';
+            
+            // Set active meal type
+            setActiveMealType('breakfast');
+            
+            mealModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Show edit meal modal
+        function showEditMealModal(meal) {
+            modalTitle.textContent = 'Edit Meal Plan';
+            selectedMeal = meal;
+            
+            // Fill form with meal data
+            mealTitle.value = meal.title;
+            mealDescription.value = meal.description || '';
+            mealDate.value = meal.date;
+            mealTime.value = meal.time || '';
+            mealCalories.value = meal.calories || '';
+            selectedMealType = meal.type || 'breakfast';
+            deleteBtn.style.display = 'inline-block';
+            
+            // Set active meal type
+            setActiveMealType(selectedMealType);
             
             mealModal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -1211,33 +1442,65 @@
             
             const title = mealTitle.value.trim();
             const description = mealDescription.value.trim();
-            const time = mealTime.value.trim();
+            const date = mealDate.value;
+            const time = mealTime.value;
+            const calories = mealCalories.value;
             
             if (!title) {
                 showToast('Please enter a meal title', 'error');
                 return;
             }
             
+            if (!date) {
+                showToast('Please select a date', 'error');
+                return;
+            }
+            
+            if (!time) {
+                showToast('Please select a time', 'error');
+                return;
+            }
+            
             try {
-                // In a real app, you would save to Supabase
-                // const { data, error } = await supabase
-                //   .from('meal_plans')
-                //   .upsert({
-                //     user_id: currentUser.id,
-                //     title: title,
-                //     description: description,
-                //     time: time,
-                //     date: selectedDate,
-                //     type: selectedMealType
-                //   })
-                //   .select();
+                if (selectedMeal) {
+                    // Update existing meal
+                    const { error } = await supabase
+                        .from('meal_plans')
+                        .update({
+                            title: title,
+                            description: description,
+                            date: date,
+                            time: time,
+                            calories: calories,
+                            type: selectedMealType
+                        })
+                        .eq('id', selectedMeal.id);
+                    
+                    if (error) throw error;
+                    
+                    showToast('Meal plan updated successfully!', 'success');
+                } else {
+                    // Create new meal
+                    const { error } = await supabase
+                        .from('meal_plans')
+                        .insert({
+                            user_id: currentUser.id,
+                            title: title,
+                            description: description,
+                            date: date,
+                            time: time,
+                            calories: calories,
+                            type: selectedMealType
+                        });
+                    
+                    if (error) throw error;
+                    
+                    showToast('Meal plan created successfully!', 'success');
+                }
                 
-                // For demo, we'll simulate success
-                showToast('Meal plan saved successfully!', 'success');
-                
-                // Close modal and refresh calendar
+                // Close modal and reload meal plans
                 closeMealModal();
-                calendar.refetchEvents();
+                loadMealPlans();
             } catch (error) {
                 console.error('Error saving meal plan:', error);
                 showToast('Failed to save meal plan: ' + error.message, 'error');
@@ -1245,22 +1508,21 @@
         }
         
         // Delete meal plan
-        async function deleteMealPlan() {
-            if (!selectedEvent) return;
+        async function deleteMealPlan(meal) {
+            if (!meal) return;
             
             try {
-                // In a real app, you would delete from Supabase
-                // const { error } = await supabase
-                //   .from('meal_plans')
-                //   .delete()
-                //   .eq('id', selectedEvent.id);
+                const { error } = await supabase
+                    .from('meal_plans')
+                    .delete()
+                    .eq('id', meal.id);
                 
-                // For demo, we'll simulate success
+                if (error) throw error;
+                
                 showToast('Meal plan deleted successfully!', 'success');
                 
-                // Remove from calendar
-                selectedEvent.remove();
-                closeMealModal();
+                // Reload meal plans
+                loadMealPlans();
             } catch (error) {
                 console.error('Error deleting meal plan:', error);
                 showToast('Failed to delete meal plan: ' + error.message, 'error');
@@ -1271,7 +1533,7 @@
         function closeMealModal() {
             mealModal.classList.remove('active');
             document.body.style.overflow = 'auto';
-            selectedEvent = null;
+            selectedMeal = null;
         }
         
         // User login
@@ -1289,7 +1551,7 @@
                 showToast('Login successful!', 'success');
                 showPlanner();
                 updateUserInfo();
-                initCalendar();
+                loadMealPlans();
             } catch (error) {
                 console.error('Login error:', error);
                 showToast('Login failed: ' + error.message, 'error');
@@ -1369,20 +1631,27 @@
             
             // Buttons
             saveBtn.addEventListener('click', saveMealPlan);
-            deleteBtn.addEventListener('click', deleteMealPlan);
+            deleteBtn.addEventListener('click', function() {
+                if (selectedMeal) {
+                    deleteMealPlan(selectedMeal);
+                }
+            });
             cancelBtn.addEventListener('click', closeMealModal);
             
-            // Calendar navigation
-            prevBtn.addEventListener('click', function() {
-                calendar.prev();
+            // Week navigation
+            prevWeekBtn.addEventListener('click', function() {
+                currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+                loadMealPlans();
             });
             
             todayBtn.addEventListener('click', function() {
-                calendar.today();
+                currentWeekStart = new Date();
+                loadMealPlans();
             });
             
-            nextBtn.addEventListener('click', function() {
-                calendar.next();
+            nextWeekBtn.addEventListener('click', function() {
+                currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+                loadMealPlans();
             });
             
             // Auth forms
@@ -1444,6 +1713,34 @@
                     setActiveMealType(selectedMealType);
                 });
             });
+            
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Set current filter
+                    currentFilter = this.dataset.filter;
+                    
+                    // Apply filter
+                    applyMealFilter();
+                });
+            });
+        }
+        
+        // Apply meal type filter
+        function applyMealFilter() {
+            // This would filter the displayed meals in a real implementation
+            // For this demo, we'll just show a toast
+            if (currentFilter === 'all') {
+                showToast('Showing all meals', 'success');
+            } else {
+                showToast(`Showing ${currentFilter} meals`, 'success');
+            }
         }
         
         // Show toast notification
@@ -1462,12 +1759,18 @@
         
         // Show loading indicator
         function showLoading() {
-            loadingIndicator.style.display = 'flex';
+            const existingLoader = document.querySelector('.loading-container');
+            if (!existingLoader) {
+                mealCards.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div></div>';
+            }
         }
         
         // Hide loading indicator
         function hideLoading() {
-            loadingIndicator.style.display = 'none';
+            const loader = document.querySelector('.loading-container');
+            if (loader) {
+                loader.style.display = 'none';
+            }
         }
     </script>
 </body>
