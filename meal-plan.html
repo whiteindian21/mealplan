@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-       <style>
+    <style>
         /* Enhanced CSS styles */
         * {
             margin: 0;
@@ -1515,6 +1515,7 @@
 
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
+
 <script>
 // Supabase Configuration
 const SUPABASE_URL = 'https://cnmapvrdamsugtdnuesh.supabase.co';
@@ -1837,7 +1838,7 @@ function setupEventListeners() {
     }
 }
 
-// Save meal plan to database
+// Save meal plan to database with enhanced structure
 async function saveMealPlanToDatabase() {
     if (!currentUser || !currentPlan) {
         showToast('No plan to save or user not logged in', 'error');
@@ -1849,22 +1850,87 @@ async function saveMealPlanToDatabase() {
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (loadingOverlay) loadingOverlay.classList.add('active');
 
+        // Prepare the plan data with additional metadata
+        const planToSave = {
+            user_id: currentUser.id,
+            plan_type: currentPlan.type,
+            plan_data: currentPlan.data,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            start_date: new Date().toISOString(), // Plan start date
+            end_date: currentPlan.type === 'weekly' ? 
+                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : // Weekly plan end date
+                new Date().toISOString(), // Daily plan end date (same as start)
+            status: 'active',
+            version: 1
+        };
+
         // Save to database
         const { data, error } = await supabase
             .from('meal_plans')
-            .insert([{
-                user_id: currentUser.id,
-                plan_type: currentPlan.type,
-                plan_data: currentPlan.data,
-                created_at: new Date().toISOString()
-            }]);
+            .insert([planToSave])
+            .select();
 
         if (error) throw error;
+
+        // Also save individual meals to a separate table for better querying
+        if (currentPlan.type === 'weekly') {
+            const mealsToInsert = [];
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            
+            days.forEach(day => {
+                if (currentPlan.data.plan[day]) {
+                    currentPlan.data.plan[day].forEach(meal => {
+                        mealsToInsert.push({
+                            plan_id: data[0].id,
+                            user_id: currentUser.id,
+                            day_of_week: day,
+                            meal_type: meal.type,
+                            meal_name: meal.name,
+                            description: meal.description,
+                            prep_time: meal.prepTime,
+                            calories: meal.calories,
+                            ingredients: JSON.stringify(meal.ingredients || []),
+                            instructions: JSON.stringify(meal.steps || []),
+                            created_at: new Date().toISOString()
+                        });
+                    });
+                }
+            });
+
+            if (mealsToInsert.length > 0) {
+                const { error: mealsError } = await supabase
+                    .from('meals')
+                    .insert(mealsToInsert);
+                
+                if (mealsError) throw mealsError;
+            }
+        } else {
+            // Save daily meal
+            const { error: mealError } = await supabase
+                .from('meals')
+                .insert([{
+                    plan_id: data[0].id,
+                    user_id: currentUser.id,
+                    day_of_week: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
+                    meal_type: currentPlan.data.type,
+                    meal_name: currentPlan.data.name,
+                    description: currentPlan.data.description,
+                    prep_time: currentPlan.data.prepTime,
+                    calories: currentPlan.data.calories,
+                    cost: currentPlan.data.cost,
+                    ingredients: JSON.stringify(currentPlan.data.ingredients || []),
+                    instructions: JSON.stringify(currentPlan.data.steps || []),
+                    created_at: new Date().toISOString()
+                }]);
+            
+            if (mealError) throw mealError;
+        }
 
         showToast('Meal plan saved successfully!', 'success');
     } catch (error) {
         console.error('Error saving meal plan:', error);
-        showToast('Failed to save meal plan', 'error');
+        showToast('Failed to save meal plan: ' + error.message, 'error');
     } finally {
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (loadingOverlay) loadingOverlay.classList.remove('active');
@@ -1940,16 +2006,102 @@ function displayInventoryItems(items) {
 // Generate meal plan using OpenAI API via Supabase Edge Function
 async function generateMealPlan(formData) {
     try {
-        // In a real application, this would call your Supabase Edge Function
-        // For this demo, we'll generate mock data based on form inputs
-        return generateMockMealPlan(formData);
+        // Show loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.add('active');
+
+        // Prepare the prompt for OpenAI
+        let prompt = `Generate a ${formData.planType} meal plan with the following requirements:\n`;
+        prompt += `- Budget: $${formData.budget}\n`;
+        
+        if (formData.specificFoods) {
+            prompt += `- Must include these foods: ${formData.specificFoods}\n`;
+        }
+        
+        if (formData.dietaryRestrictions) {
+            prompt += `- Dietary restrictions: ${formData.dietaryRestrictions}\n`;
+        }
+        
+        if (formData.useInventory && formData.inventoryItems.length > 0) {
+            prompt += `- Available ingredients: ${formData.inventoryItems.map(item => item.name).join(', ')}\n`;
+        }
+        
+        if (formData.planType === 'daily' && formData.mood) {
+            prompt += `- Meal mood: ${formData.mood}\n`;
+        }
+        
+        prompt += `\nPlease provide the response in JSON format with the following structure:\n`;
+        
+        if (formData.planType === 'weekly') {
+            prompt += `{
+                "plan": {
+                    "Monday": [
+                        {
+                            "name": "Meal name",
+                            "type": "Breakfast/Lunch/Dinner",
+                            "prepTime": "X min",
+                            "calories": X,
+                            "description": "Meal description",
+                            "ingredients": ["ingredient1", "ingredient2"],
+                            "steps": ["step1", "step2"]
+                        }
+                    ],
+                    // ... other days
+                },
+                "summary": {
+                    "totalCost": X.XX,
+                    "totalCalories": XXXX,
+                    "totalPrepTime": "Xh XXm",
+                    "uniqueIngredients": XX
+                }
+            }`;
+        } else {
+            prompt += `{
+                "name": "Meal name",
+                "type": "Breakfast/Lunch/Dinner",
+                "prepTime": "X min",
+                "calories": X,
+                "cost": "$X.XX",
+                "description": "Meal description",
+                "ingredients": ["ingredient1", "ingredient2"],
+                "steps": ["step1", "step2"]
+            }`;
+        }
+
+        // Call Supabase Edge Function to interact with OpenAI
+        const { data, error } = await supabase.functions.invoke('generate-meal-plan', {
+            body: {
+                prompt: prompt,
+                planType: formData.planType
+            }
+        });
+
+        if (error) throw error;
+        
+        // Parse the response (assuming the Edge Function returns properly formatted JSON)
+        const result = typeof data === 'string' ? JSON.parse(data) : data;
+        
+        // For demo purposes, if the API call fails, use mock data
+        if (!result || (formData.planType === 'weekly' && !result.plan) || 
+            (formData.planType === 'daily' && !result.name)) {
+            console.warn('Using mock data as fallback');
+            return generateMockMealPlan(formData);
+        }
+
+        return result;
     } catch (error) {
         console.error('Error in generateMealPlan:', error);
-        throw error;
+        
+        // Fallback to mock data if API fails
+        showToast('Using mock data as API failed', 'warning');
+        return generateMockMealPlan(formData);
+    } finally {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
     }
 }
 
-// Generate mock meal plan based on form data
+// Generate mock meal plan based on form data (fallback)
 function generateMockMealPlan(formData) {
     const { planType, budget, specificFoods, dietaryRestrictions, useInventory, inventoryItems, mood } = formData;
     
@@ -2099,7 +2251,9 @@ function generateMockMealPlan(formData) {
                     type: type,
                     prepTime: `${10 + Math.floor(Math.random() * 30)} min`,
                     calories: 300 + Math.floor(Math.random() * 400),
-                    description: description
+                    description: description,
+                    ingredients: ["Ingredient 1", "Ingredient 2", "Ingredient 3"],
+                    steps: ["Step 1", "Step 2", "Step 3"]
                 };
             });
         });
@@ -2234,5 +2388,5 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 </script>
-   </body>
+</body>
 </html>
